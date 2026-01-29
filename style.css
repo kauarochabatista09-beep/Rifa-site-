@@ -175,3 +175,15 @@ a{color:inherit;text-decoration:none}
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
+.randomRow{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.randomRow .input{
+  margin: 8px 0 14px;
+}
+.randomRow .btn{
+  width: 210px;
+  margin-top: -6px;
+}
