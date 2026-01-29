@@ -41,6 +41,57 @@ $("closeBtn").onclick = closeSidebar;
 
 $("year").innerText = new Date().getFullYear();
 
+// =====================
+// CONFETE (SEM BIBLIOTECA)
+// =====================
+function fireConfetti(durationMs = 2500){
+  const end = Date.now() + durationMs;
+  const colors = ["#f5d76e", "#caa43a", "#ffffff", "#ffb020"];
+
+  const container = document.createElement("div");
+  container.style.position = "fixed";
+  container.style.inset = "0";
+  container.style.pointerEvents = "none";
+  container.style.overflow = "hidden";
+  container.style.zIndex = "9999";
+  document.body.appendChild(container);
+
+  function createPiece(){
+    const piece = document.createElement("div");
+    const size = Math.random() * 10 + 6;
+    piece.style.position = "absolute";
+    piece.style.width = size + "px";
+    piece.style.height = (size * 0.6) + "px";
+    piece.style.left = (Math.random() * 100) + "vw";
+    piece.style.top = "-20px";
+    piece.style.opacity = (Math.random() * 0.5 + 0.5).toFixed(2);
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.borderRadius = "4px";
+    piece.style.transform = `rotate(${Math.random()*360}deg)`;
+
+    const fall = Math.random() * 2 + 2.5; // segundos
+    piece.animate([
+      { transform: `translateY(0) rotate(0deg)`, filter: "blur(0px)" },
+      { transform: `translateY(110vh) rotate(${Math.random()*720}deg)`, filter: "blur(0.2px)" }
+    ], {
+      duration: fall * 1000,
+      easing: "linear",
+      fill: "forwards"
+    });
+
+    container.appendChild(piece);
+    setTimeout(()=> piece.remove(), fall*1000 + 200);
+  }
+
+  const interval = setInterval(() => {
+    for(let i=0;i<14;i++) createPiece();
+    if(Date.now() > end){
+      clearInterval(interval);
+      setTimeout(()=>container.remove(), 1200);
+    }
+  }, 160);
+}
+
 function renderRifas(){
   const grid = $("rifasGrid");
   grid.innerHTML = "";
@@ -58,7 +109,7 @@ function renderRifas(){
     const badgeClass = freeCount > 0 ? "ok" : "bad";
     const badgeText  = freeCount > 0 ? "Disponível" : "Esgotado";
 
-    // ✅ porcentagem (conta vendidos + reservados)
+    // ✅ porcentagem (vendidos + reservados)
     const progressPct = Math.round(((soldCount + resCount) / r.numbers.length) * 100);
 
     const el = document.createElement("div");
@@ -201,10 +252,15 @@ $("btnReserve").onclick = () => {
   data.orders.push(order);
   saveData(data);
 
-  $("payInfo").innerHTML = `✅ Reserva feita!<br><br>
-  <b>Total:</b> ${money(order.total)}<br>
-  <b>Pix:</b> <span style="color:#fff">${rifa.pix}</span><br><br>
-  Envie o comprovante para o admin confirmar.`;
+  // ✅ mensagem + boa sorte
+  $("payInfo").innerHTML = `✅ Reserva feita com sucesso!<br><br>
+🍀 <b>BOA SORTE!</b> Você já está concorrendo.<br><br>
+<b>Total:</b> ${money(order.total)}<br>
+<b>Pix:</b> <span style="color:#fff">${rifa.pix}</span><br><br>
+Envie o comprovante para o admin confirmar.`;
+
+  // ✅ confete
+  fireConfetti(2500);
 
   renderNumbers(rifa);
   renderRifas();
