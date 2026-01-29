@@ -6,7 +6,6 @@ function loadData(){
   const raw = localStorage.getItem(LS_KEY);
   if(raw) return JSON.parse(raw);
 
-  // dados iniciais
   const init = {
     rifas: [],
     orders: []
@@ -59,18 +58,35 @@ function renderRifas(){
     const badgeClass = freeCount > 0 ? "ok" : "bad";
     const badgeText  = freeCount > 0 ? "Disponível" : "Esgotado";
 
+    // ✅ porcentagem (conta vendidos + reservados)
+    const progressPct = Math.round(((soldCount + resCount) / r.numbers.length) * 100);
+
     const el = document.createElement("div");
     el.className = "card rifaCard";
     el.innerHTML = `
       <img src="${r.img || "https://images.unsplash.com/photo-1528826194825-0e0f1d5fdd8a?auto=format&fit=crop&w=1200&q=80"}" alt="Rifa">
+
+      <div class="progressWrap">
+        <div class="progressTop">
+          <span>Progresso</span>
+          <b>${progressPct}%</b>
+        </div>
+        <div class="progressBar">
+          <div class="progressFill" style="width:${progressPct}%"></div>
+        </div>
+      </div>
+
       <h3>${r.title}</h3>
       <p class="mini">${r.desc}</p>
+
       <div class="rifaMeta">
         <span class="badge">${money(r.price)} / nº</span>
         <span class="badge ${badgeClass}">${badgeText}</span>
       </div>
+
       <button class="btn primary">Comprar números</button>
     `;
+
     el.querySelector("button").onclick = () => openModal(r.id);
     grid.appendChild(el);
   });
@@ -89,6 +105,7 @@ function openModal(rifaId){
   $("buyerName").value = "";
   $("buyerPhone").value = "";
   $("buyerNumbers").value = "";
+
   $("payInfo").innerHTML = `<b>Pagamento via Pix:</b><br>Chave: <span style="color:#fff">${rifa.pix}</span><br><br>Após reservar, envie o comprovante para confirmação.`;
 
   renderNumbers(rifa);
@@ -101,6 +118,7 @@ function closeModal(){
 }
 
 $("modalClose").onclick = closeModal;
+
 $("modal").addEventListener("click",(e)=>{
   if(e.target.id === "modal") closeModal();
 });
@@ -108,6 +126,7 @@ $("modal").addEventListener("click",(e)=>{
 function renderNumbers(rifa){
   const grid = $("numbersGrid");
   grid.innerHTML = "";
+
   rifa.numbers.forEach(n => {
     const el = document.createElement("div");
     el.className = `num ${n.status}`;
@@ -194,7 +213,10 @@ $("btnReserve").onclick = () => {
 // lookup compras do comprador
 $("btnLookup").onclick = () => {
   const phone = $("lookupPhone").value.trim();
-  if(!phone){ $("lookupResult").innerText = "Digite seu telefone."; return; }
+  if(!phone){
+    $("lookupResult").innerText = "Digite seu telefone.";
+    return;
+  }
 
   const list = data.orders
     .filter(o => o.buyerPhone === phone)
