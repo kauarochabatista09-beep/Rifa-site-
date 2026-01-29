@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rifas Premium</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <button class="menuBtn" id="menuBtn">☰</button>
+    <div class="brand">
+      <span class="logo">🎟️</span>
+      <div>
+        <h1>Rifas Premium</h1>
+        <p>Compre seu número e concorra!</p>
+      </div>
+    </div>
+    <a class="adminLink" href="./admin.html">Admin</a>
+  </header>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebarHead">
+      <h3>Menu</h3>
+      <button class="closeBtn" id="closeBtn">✕</button>
+    </div>
+
+    <div class="sidebarSection">
+      <h4>Minhas compras</h4>
+      <p class="mini">Digite seu telefone e veja seus números.</p>
+      <input id="lookupPhone" class="input" placeholder="Ex: 11999999999"/>
+      <button id="btnLookup" class="btn">Ver compras</button>
+      <div id="lookupResult" class="box"></div>
+    </div>
+
+    <div class="sidebarSection">
+      <h4>Regras</h4>
+      <ul class="rules">
+        <li>Escolha números disponíveis</li>
+        <li>Finalize o pagamento via Pix</li>
+        <li>Após pagamento, o admin confirma</li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="container">
+    <section class="hero">
+      <h2>🔥 Rifas ativas</h2>
+      <p>Escolha uma rifa e reserve seus números</p>
+    </section>
+
+    <section id="rifasGrid" class="grid"></section>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> Rifas Premium</p>
+  </footer>
+
+  <div class="modal" id="modal">
+    <div class="modalCard">
+      <div class="modalHead">
+        <h3 id="modalTitle">Rifa</h3>
+        <button class="closeBtn" id="modalClose">✕</button>
+      </div>
+
+      <div class="modalBody">
+        <img id="modalImg" class="rifaImg" alt="Imagem da rifa"/>
+        <p id="modalDesc" class="desc"></p>
+
+        <div class="buyBox">
+          <label class="label">Seu nome</label>
+          <input id="buyerName" class="input" placeholder="Seu nome completo">
+
+          <label class="label">Seu telefone (WhatsApp)</label>
+          <input id="buyerPhone" class="input" placeholder="DDD + número">
+
+          <label class="label">Escolha os números (separe por vírgula)</label>
+          <input id="buyerNumbers" class="input" placeholder="Ex: 01, 02, 15">
+
+          <button id="btnReserve" class="btn primary">Reservar números</button>
+
+          <div id="payInfo" class="payInfo"></div>
+        </div>
+
+        <div class="numbersBox">
+          <h4>Números</h4>
+          <div id="numbersGrid" class="numbersGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
