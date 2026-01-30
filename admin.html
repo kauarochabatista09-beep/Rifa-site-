@@ -8,28 +8,30 @@
 </head>
 
 <body>
+
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
         <div class="brand-badge">ADMIN</div>
+
         <div class="brand-text">
           <div class="brand-line">
             <span class="brand-title gold3d">Painel ADM</span>
             <span class="blue-bolt blink">⚡</span>
           </div>
-          <div class="brand-sub">Crie rifas e edite sua chave PIX</div>
+          <div class="brand-sub">Crie rifas, edite PIX e sorteie ganhadores</div>
         </div>
       </div>
 
-      <a class="btn-admin" href="index.html">Voltar ao site</a>
+      <a class="btn" href="index.html" style="text-decoration:none;">Voltar</a>
     </div>
 
     <div class="marquee-wrap">
       <div class="marquee">
         <div class="marquee-track">
-          <span class="marquee-item">✨ PAINEL ADMIN • CRIE SUA RIFA • EDITE PIX • GERENCIE NÚMEROS ✨</span>
-          <span class="marquee-item">✨ PAINEL ADMIN • CRIE SUA RIFA • EDITE PIX • GERENCIE NÚMEROS ✨</span>
-          <span class="marquee-item">✨ PAINEL ADMIN • CRIE SUA RIFA • EDITE PIX • GERENCIE NÚMEROS ✨</span>
+          <span class="marquee-item">✨ ADMIN • CRIE RIFAS • EDITE PIX • FOTO DA RIFA • GANHADORES 🏆 ✨</span>
+          <span class="marquee-item">✨ ADMIN • CRIE RIFAS • EDITE PIX • FOTO DA RIFA • GANHADORES 🏆 ✨</span>
+          <span class="marquee-item">✨ ADMIN • CRIE RIFAS • EDITE PIX • FOTO DA RIFA • GANHADORES 🏆 ✨</span>
         </div>
       </div>
     </div>
@@ -37,6 +39,7 @@
 
   <main class="container">
 
+    <!-- LOGIN -->
     <div class="rifa-card" id="loginBox">
       <h2 class="gold3d">Login do Admin</h2>
       <p class="muted" style="margin:10px 0;">Acesse com seu usuário e senha</p>
@@ -55,9 +58,9 @@
       <button class="btn-primary" onclick="login()">Entrar</button>
     </div>
 
+    <!-- PAINEL -->
     <div class="rifa-card" id="panel" style="display:none;">
-      <h2 class="gold3d">Configurar Rifas</h2>
-      <p class="muted" style="margin:10px 0;">Crie rifas novas e edite chave PIX</p>
+      <h2 class="gold3d">Configurações</h2>
 
       <div class="field">
         <label>Chave PIX</label>
@@ -65,12 +68,15 @@
       </div>
 
       <div class="field" style="margin-top:12px;">
-        <label>WhatsApp do Admin (com DDD / país)</label>
+        <label>WhatsApp do Admin (com DDD + 55)</label>
         <input id="whats" placeholder="5511989448748" />
       </div>
 
+      <button class="btn" style="margin-top:14px;width:100%;" onclick="saveConfig()">Salvar configurações</button>
+
       <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:18px 0;">
 
+      <!-- CRIAR RIFA -->
       <h3 class="gold3d" style="font-size:18px;">Criar nova rifa</h3>
 
       <div class="modal-grid" style="margin-top:10px;">
@@ -78,9 +84,15 @@
           <label>Título</label>
           <input id="title" placeholder="Ex: Pix R$ 500" />
         </div>
+
         <div class="field">
           <label>Subtítulo</label>
           <input id="subtitle" placeholder="Ex: Sorteio ao vivo no Instagram" />
+        </div>
+
+        <div class="field">
+          <label>Foto da Rifa (link da imagem)</label>
+          <input id="imageUrl" placeholder="Ex: https://..." />
         </div>
 
         <div class="field">
@@ -96,10 +108,19 @@
 
       <button class="btn-primary" onclick="createRifa()">Criar rifa</button>
 
-      <h3 class="gold3d" style="font-size:18px;margin-top:18px;">Rifas criadas</h3>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:18px 0;">
+
+      <!-- LISTA RIFAS -->
+      <h3 class="gold3d" style="font-size:18px;">Rifas criadas</h3>
       <div id="list"></div>
 
-      <button class="btn" style="margin-top:14px;width:100%;" onclick="saveConfig()">Salvar configurações</button>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:18px 0;">
+
+      <!-- GANHADORES -->
+      <h3 class="gold3d" style="font-size:18px;">Ganhadores 🏆</h3>
+      <div id="winners"></div>
+
+      <button class="btn" style="margin-top:14px;width:100%;" onclick="logout()">Sair</button>
     </div>
 
   </main>
@@ -110,7 +131,8 @@
     const defaultData = {
       pixKey: "b3764325-afe3-40c4-a0fb-a532b88c0717",
       whatsapp: "5511989448748",
-      rifas: []
+      rifas: [],
+      ganhadores: []
     };
 
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultData;
@@ -132,9 +154,14 @@
         document.getElementById("whats").value = data.whatsapp;
 
         renderList();
+        renderWinners();
       }else{
         alert("Login inválido!");
       }
+    }
+
+    function logout(){
+      location.reload();
     }
 
     function saveConfig(){
@@ -142,12 +169,12 @@
       data.whatsapp = document.getElementById("whats").value.trim();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       alert("Configurações salvas ✅");
-      renderList();
     }
 
     function createRifa(){
       const title = document.getElementById("title").value.trim();
       const subtitle = document.getElementById("subtitle").value.trim();
+      const imageUrl = document.getElementById("imageUrl").value.trim();
       const price = Number(document.getElementById("price").value);
       const totalNumbers = Number(document.getElementById("totalNumbers").value);
 
@@ -157,8 +184,10 @@
       }
 
       data.rifas.push({
+        id: Date.now(),
         title,
         subtitle,
+        imageUrl,
         price,
         totalNumbers,
         reserved:[]
@@ -168,6 +197,7 @@
 
       document.getElementById("title").value = "";
       document.getElementById("subtitle").value = "";
+      document.getElementById("imageUrl").value = "";
 
       renderList();
       alert("Rifa criada ✅");
@@ -188,6 +218,41 @@
       alert("Números liberados ✅");
     }
 
+    function sortear(i){
+      const rifa = data.rifas[i];
+      const reserved = (rifa.reserved || []);
+      if(!reserved.length){
+        alert("Não tem números reservados nessa rifa ainda.");
+        return;
+      }
+
+      const win = reserved[Math.floor(Math.random() * reserved.length)];
+
+      const winner = {
+        rifaId: rifa.id,
+        rifaTitle: rifa.title,
+        number: win.n,
+        name: win.name,
+        phone: win.phone,
+        date: new Date().toISOString()
+      };
+
+      data.ganhadores = data.ganhadores || [];
+      data.ganhadores.unshift(winner);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      alert(`🏆 Vencedor:\n${winner.name}\nNúmero: ${String(winner.number).padStart(2,"0")}`);
+      renderWinners();
+    }
+
+    function removeWinner(i){
+      if(!confirm("Remover ganhador?")) return;
+      data.ganhadores.splice(i,1);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderWinners();
+    }
+
     function renderList(){
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -202,7 +267,14 @@
         div.className = "rifa-card";
         div.style.marginTop = "12px";
 
+        const img = r.imageUrl ? `
+          <div class="rifa-photo">
+            <img src="${r.imageUrl}" alt="Foto do prêmio" />
+          </div>
+        ` : "";
+
         div.innerHTML = `
+          ${img}
           <div class="rifa-head">
             <div>
               <h3 class="gold3d" style="font-size:18px;">${r.title}</h3>
@@ -210,13 +282,51 @@
               <div class="rifa-sub">Preço: R$ ${r.price} • Números: ${r.totalNumbers}</div>
               <div class="rifa-sub">Reservados: ${(r.reserved||[]).length}</div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:8px;min-width:190px;">
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:210px;">
+              <button class="btn" onclick="sortear(${i})">🏆 Sortear vencedor</button>
               <button class="btn" onclick="clearReserved(${i})">Liberar números</button>
               <button class="btn" onclick="deleteRifa(${i})">Apagar rifa</button>
             </div>
           </div>
         `;
         list.appendChild(div);
+      });
+    }
+
+    function renderWinners(){
+      const winners = document.getElementById("winners");
+      winners.innerHTML = "";
+
+      data.ganhadores = data.ganhadores || [];
+
+      if(!data.ganhadores.length){
+        winners.innerHTML = `<p class="muted" style="margin-top:8px;">Nenhum ganhador ainda.</p>`;
+        return;
+      }
+
+      data.ganhadores.forEach((w,i)=>{
+        const div = document.createElement("div");
+        div.className = "rifa-card";
+        div.style.marginTop = "12px";
+
+        const dt = new Date(w.date);
+        const dateStr = dt.toLocaleString("pt-BR");
+
+        div.innerHTML = `
+          <div class="rifa-head">
+            <div>
+              <h3 class="gold3d" style="font-size:18px;">🏆 ${w.name}</h3>
+              <div class="rifa-sub">Rifa: ${w.rifaTitle}</div>
+              <div class="rifa-sub">Número vencedor: <b>${String(w.number).padStart(2,"0")}</b></div>
+              <div class="rifa-sub">Whats: ${w.phone || "-"}</div>
+              <div class="rifa-sub">Data: ${dateStr}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:180px;">
+              <button class="btn" onclick="removeWinner(${i})">Remover</button>
+            </div>
+          </div>
+        `;
+        winners.appendChild(div);
       });
     }
   </script>
