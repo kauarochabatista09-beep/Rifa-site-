@@ -84,38 +84,44 @@ body{
   100%{transform: translateX(110%) skewX(-18deg);}
 }
 
-/* ===== BOTÕES ===== */
-.btn-admin{
-  padding:10px 12px;
-  border-radius:12px;
-  background:rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.08);
-  color:var(--text);
-  text-decoration:none;
-  font-weight:800;
-  font-size:13px;
+/* ===== RAIO AZUL PISCANDO ===== */
+.blue-bolt{
+  color: var(--blue);
+  font-size:20px;
+  text-shadow:0 0 14px rgba(47,139,255,.65);
 }
 
-.btn{
-  padding:10px 12px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.12);
-  background:rgba(255,255,255,0.08);
-  color:var(--text);
-  font-weight:800;
-  cursor:pointer;
+.blink{
+  animation: blinkBolt 1.2s infinite;
 }
 
-.btn-primary{
-  width:100%;
-  padding:12px 14px;
-  border-radius:14px;
-  border:none;
+@keyframes blinkBolt{
+  0%, 100%{opacity:1; transform:scale(1);}
+  50%{opacity:.4; transform:scale(1.2);}
+}
+
+/* ===== BOTÃO MENU (3 TRAÇOS DOURADO) ===== */
+.menu-btn{
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  border:1px solid rgba(212,175,55,0.35);
+  background: rgba(212,175,55,0.10);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
   cursor:pointer;
-  font-weight:1000;
-  background: linear-gradient(135deg, var(--gold1), var(--gold2), var(--gold3));
-  color:#1a1200;
-  box-shadow:0 10px 35px rgba(212,175,55,.18);
+  box-shadow:0 10px 30px rgba(212,175,55,0.15);
+}
+
+.menu-btn span{
+  width:22px;
+  height:3px;
+  border-radius:8px;
+  background: linear-gradient(90deg, #fff3b0, #d4af37, #8a6a00);
+  box-shadow: 0 0 10px rgba(212,175,55,0.35);
 }
 
 /* ===== LETREIRO INFINITO ===== */
@@ -155,20 +161,100 @@ body{
   100%{transform: translateX(-33.333%);}
 }
 
-/* ===== RAIO AZUL PISCANDO ===== */
-.blue-bolt{
-  color: var(--blue);
-  font-size:20px;
-  text-shadow:0 0 14px rgba(47,139,255,.65);
+/* ===== MENU LATERAL ===== */
+.side-menu{
+  position:fixed;
+  inset:0;
+  z-index:120;
+  display:none;
 }
 
-.blink{
-  animation: blinkBolt 1.2s infinite;
+.side-menu.open{display:block;}
+
+.menu-overlay{
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
 }
 
-@keyframes blinkBolt{
-  0%, 100%{opacity:1; transform:scale(1);}
-  50%{opacity:.4; transform:scale(1.2);}
+.menu-panel{
+  position:absolute;
+  right:0;
+  top:0;
+  height:100%;
+  width:min(330px, 92vw);
+  background: rgba(9,12,20,0.98);
+  border-left:1px solid rgba(255,255,255,0.08);
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.menu-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 4px 12px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.menu-close{
+  width:42px;height:42px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
+  color:#fff;
+  font-size:26px;
+  cursor:pointer;
+}
+
+.menu-item{
+  width:100%;
+  text-align:left;
+  padding:14px 12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.05);
+  color:#fff;
+  font-weight:900;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.menu-item:hover{
+  border-color: rgba(212,175,55,0.25);
+  background: rgba(212,175,55,0.08);
+}
+
+.menu-footer{
+  margin-top:auto;
+  padding-top:14px;
+  opacity:.7;
+}
+
+/* ===== BOTÕES ===== */
+.btn{
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.08);
+  color:var(--text);
+  font-weight:800;
+  cursor:pointer;
+}
+
+.btn-primary{
+  width:100%;
+  padding:12px 14px;
+  border-radius:14px;
+  border:none;
+  cursor:pointer;
+  font-weight:1000;
+  background: linear-gradient(135deg, var(--gold1), var(--gold2), var(--gold3));
+  color:#1a1200;
+  box-shadow:0 10px 35px rgba(212,175,55,.18);
 }
 
 /* ===== PAGE ===== */
@@ -203,7 +289,9 @@ body{
   gap:14px;
   margin-bottom:14px;
 }
+
 .rifa-sub{color:var(--muted);margin-top:6px;font-size:13px;}
+
 .rifa-price{
   font-weight:1000;
   padding:10px 12px;
@@ -252,7 +340,20 @@ body{
 
 .rifa-stats{color:var(--muted);font-weight:800;font-size:13px;}
 
-/* ===== MODAL ===== */
+.footer-note{
+  text-align:center;
+  margin-top:30px;
+  opacity:.75;
+  font-weight:900;
+}
+
+@media(max-width:720px){
+  .numbers{grid-template-columns: repeat(7, 1fr);}
+  .rifa-bottom{grid-template-columns:1fr;}
+}
+/* ======================
+   MODAL FINALIZAR COMPRA
+   ====================== */
 .modal{
   position:fixed;
   inset:0;
@@ -293,7 +394,14 @@ body{
   margin:14px 0;
 }
 
-.field label{display:block;color:var(--muted);font-weight:900;margin-bottom:6px;font-size:12px;}
+.field label{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+  margin-bottom:6px;
+  font-size:12px;
+}
+
 .field input{
   width:100%;
   padding:12px;
@@ -304,7 +412,13 @@ body{
   outline:none;
 }
 
-.chips{display:flex;flex-wrap:wrap;gap:8px;padding:6px 0;}
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:6px 0;
+}
+
 .chip{
   padding:8px 10px;
   border-radius:999px;
@@ -322,10 +436,23 @@ body{
   border:1px solid rgba(212,175,55,0.25);
   background: rgba(212,175,55,0.06);
 }
-.pay-title{font-weight:1000;}
-.pay-sub{color:var(--muted);font-weight:800;font-size:12px;margin-top:4px;margin-bottom:10px;}
 
-.pix{display:flex;gap:10px;align-items:center;}
+.pay-title{font-weight:1000;}
+
+.pay-sub{
+  color:var(--muted);
+  font-weight:800;
+  font-size:12px;
+  margin-top:4px;
+  margin-bottom:10px;
+}
+
+.pix{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
 .pix input{
   flex:1;
   padding:12px;
@@ -335,196 +462,35 @@ body{
   color:var(--text);
 }
 
-.pay-total{margin-top:10px;font-weight:1000;}
-
-.footer-note{
-  text-align:center;
-  margin-top:30px;
-  opacity:.75;
-  font-weight:900;
+.pay-total{
+  margin-top:10px;
+  font-weight:1000;
 }
 
+/* ======================
+   AJUSTES MOBILE
+   ====================== */
 @media(max-width:720px){
-  .numbers{grid-template-columns: repeat(7, 1fr);}
-  .rifa-bottom{grid-template-columns:1fr;}
   .modal-grid{grid-template-columns:1fr;}
 }
-/* ===== BOTÃO MENU (3 TRAÇOS DOURADO) ===== */
-.menu-btn{
-  width:48px;
-  height:48px;
-  border-radius:16px;
-  border:1px solid rgba(212,175,55,0.35);
-  background: rgba(212,175,55,0.10);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  cursor:pointer;
-  box-shadow:0 10px 30px rgba(212,175,55,0.15);
+
+/* ======================
+   MELHORIAS VISUAIS
+   ====================== */
+.rifa-card, .empty, .modal-card, .menu-panel, .marquee{
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
 }
 
-.menu-btn span{
-  width:22px;
-  height:3px;
-  border-radius:8px;
-  background: linear-gradient(90deg, #fff3b0, #d4af37, #8a6a00);
-  box-shadow: 0 0 10px rgba(212,175,55,0.35);
-}
-
-/* ===== MENU LATERAL ===== */
-.side-menu{
-  position:fixed;
-  inset:0;
-  z-index:120;
-  display:none;
-}
-
-.side-menu.open{display:block;}
-
-.menu-overlay{
-  position:absolute;
-  inset:0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(8px);
-}
-
+/* animação suave do menu */
 .menu-panel{
-  position:absolute;
-  right:0;
-  top:0;
-  height:100%;
-  width:min(330px, 92vw);
-  background: rgba(9,12,20,0.98);
-  border-left:1px solid rgba(255,255,255,0.08);
-  padding:14px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+  animation: slideIn .25s ease-out;
+}
+@keyframes slideIn{
+  from{transform:translateX(20px); opacity:0;}
+  to{transform:translateX(0); opacity:1;}
 }
 
-.menu-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:6px 4px 12px;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-
-.menu-close{
-  width:42px;height:42px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.06);
-  color:#fff;
-  font-size:26px;
-  cursor:pointer;
-}
-
-.menu-item{
-  width:100%;
-  text-align:left;
-  padding:14px 12px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.05);
-  color:#fff;
-  font-weight:900;
-  text-decoration:none;
-}
-/* ===== BOTÃO MENU (3 TRAÇOS DOURADO) ===== */
-.menu-btn{
-  width:48px;
-  height:48px;
-  border-radius:16px;
-  border:1px solid rgba(212,175,55,0.35);
-  background: rgba(212,175,55,0.10);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  cursor:pointer;
-  box-shadow:0 10px 30px rgba(212,175,55,0.15);
-}
-
-.menu-btn span{
-  width:22px;
-  height:3px;
-  border-radius:8px;
-  background: linear-gradient(90deg, #fff3b0, #d4af37, #8a6a00);
-  box-shadow: 0 0 10px rgba(212,175,55,0.35);
-}
-
-/* ===== MENU LATERAL ===== */
-.side-menu{
-  position:fixed;
-  inset:0;
-  z-index:120;
-  display:none;
-}
-
-.side-menu.open{display:block;}
-
-.menu-overlay{
-  position:absolute;
-  inset:0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(8px);
-}
-
-.menu-panel{
-  position:absolute;
-  right:0;
-  top:0;
-  height:100%;
-  width:min(330px, 92vw);
-  background: rgba(9,12,20,0.98);
-  border-left:1px solid rgba(255,255,255,0.08);
-  padding:14px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.menu-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:6px 4px 12px;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-
-.menu-close{
-  width:42px;height:42px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.06);
-  color:#fff;
-  font-size:26px;
-  cursor:pointer;
-}
-
-.menu-item{
-  width:100%;
-  text-align:left;
-  padding:14px 12px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.05);
-  color:#fff;
-  font-weight:900;
-  text-decoration:none;
-}
-
-.menu-item:hover{
-  border-color: rgba(212,175,55,0.25);
-  background: rgba(212,175,55,0.08);
-}
-
-.menu-footer{
-  margin-top:auto;
-  padding-top:14px;
-  opacity:.7;
+/* melhorar toque no iPhone */
+.num, .btn, .btn-primary, .menu-btn, .menu-item{
+  -webkit-tap-highlight-color: transparent;
 }
