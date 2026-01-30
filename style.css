@@ -595,3 +595,73 @@ body{
   font-size: 13px;
   opacity: 0.9;
 }
+/* ============================
+   PROMOÇÕES / PACOTES (INFLUENCER)
+   ============================ */
+
+.promo-actions{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.promo-actions .btn{
+  width: 100%;
+  padding: 12px 10px;
+  border-radius: 14px;
+  font-weight: 1000;
+  letter-spacing: .2px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.promo-actions .btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  background: rgba(255,255,255,0.10);
+}
+
+.promo-actions .btn:active{
+  transform: translateY(0px);
+}
+
+.promo-hint{
+  margin-top: 10px;
+  font-size: 13px;
+  opacity: .95;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(0,255,136,0.09);
+  border: 1px solid rgba(0,255,136,0.20);
+}
+
+/* chips / números gerados */
+.chips{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chip{
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-weight: 1000;
+  letter-spacing: 1px;
+}
+
+.muted{
+  opacity: .8;
+  font-size: 13px;
+}
+
+/* deixa o modal mais "premium" */
+.modal-card{
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 20px 70px rgba(0,0,0,0.55);
+}
