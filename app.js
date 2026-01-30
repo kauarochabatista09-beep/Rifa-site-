@@ -36,7 +36,7 @@ function pad2(n){
   return String(n).padStart(2,"0");
 }
 
-// ✅ mascarar telefone pra mostrar no site público
+// ✅ mascarar telefone no site público
 function maskPhone(phone){
   if(!phone) return "-";
   const digits = String(phone).replace(/\D/g,"");
@@ -62,7 +62,52 @@ $("closeBtn").onclick = closeSidebar;
 $("year").innerText = new Date().getFullYear();
 
 // =====================
-// CONFETE (SEM BIBLIOTECA)
+// ADMIN ESCONDIDO (CELULAR + PC)
+// =====================
+(function secretAdminAccess(){
+  const adminBtn = document.getElementById("adminHiddenLink");
+  const logo = document.getElementById("secretLogo");
+
+  if(!adminBtn || !logo) return;
+
+  let taps = 0;
+  let tapTimer = null;
+
+  function showAdmin(){
+    adminBtn.classList.remove("hidden");
+    adminBtn.innerText = "Admin 🔒";
+
+    setTimeout(() => {
+      adminBtn.classList.add("hidden");
+    }, 10000); // some após 10s
+  }
+
+  // celular: tocar 5x no logo
+  logo.addEventListener("click", () => {
+    taps++;
+    clearTimeout(tapTimer);
+
+    tapTimer = setTimeout(() => {
+      taps = 0;
+    }, 1200);
+
+    if(taps >= 5){
+      taps = 0;
+      showAdmin();
+    }
+  });
+
+  // PC: Ctrl + Shift + A
+  document.addEventListener("keydown", (e) => {
+    const key = (e.key || "").toLowerCase();
+    if(e.ctrlKey && e.shiftKey && key === "a"){
+      showAdmin();
+    }
+  });
+})();
+
+// =====================
+// CONFETE
 // =====================
 function fireConfetti(durationMs = 2500){
   const end = Date.now() + durationMs;
@@ -113,30 +158,28 @@ function fireConfetti(durationMs = 2500){
 }
 
 // =====================
-// GERAR NÚMEROS ALEATÓRIOS LIVRES
+// NÚMEROS ALEATÓRIOS
 // =====================
 function getRandomFreeNumbers(rifa, qty){
   const free = rifa.numbers.filter(n => n.status === "free").map(n => n.num);
-
   if(qty > free.length) return null;
 
   for(let i=free.length-1;i>0;i--){
     const j = Math.floor(Math.random() * (i+1));
     [free[i], free[j]] = [free[j], free[i]];
   }
-
   return free.slice(0, qty);
 }
 
 // =====================
-// RESULTADOS PÚBLICOS (LISTA)
+// RESULTADOS NO SITE (LISTA)
 // =====================
 function renderResultsBox(){
   const box = $("resultBox");
   const content = $("resultContent");
   if(!box || !content) return;
 
-  resultsData = loadResults(); // recarregar
+  resultsData = loadResults();
 
   if(!resultsData.results || resultsData.results.length === 0){
     box.classList.add("hidden");
@@ -161,7 +204,7 @@ function renderResultsBox(){
 }
 
 // =====================
-// RENDER RIFAS
+// RENDER RIFAS (com barra %)
 // =====================
 function renderRifas(){
   const grid = $("rifasGrid");
@@ -231,10 +274,14 @@ function openModal(rifaId){
   $("buyerNumbers").value = "";
   if($("randomQty")) $("randomQty").value = "";
 
-  $("payInfo").innerHTML = `<b>Pagamento via Pix:</b><br>Chave: <span style="color:#fff">${rifa.pix}</span><br><br>Após reservar, envie o comprovante para confirmação.`;
+  $("payInfo").innerHTML =
+    `<b>Pagamento via Pix:</b><br>
+     Chave: <span style="color:#fff">${rifa.pix}</span><br><br>
+     Após reservar, envie o comprovante para confirmação.`;
 
   renderNumbers(rifa);
 
+  // botão aleatório
   if($("btnRandom")){
     $("btnRandom").onclick = () => {
       const qty = parseInt(($("randomQty")?.value || "").trim(), 10);
@@ -262,7 +309,6 @@ function closeModal(){
 }
 
 $("modalClose").onclick = closeModal;
-
 $("modal").addEventListener("click",(e)=>{
   if(e.target.id === "modal") closeModal();
 });
@@ -292,6 +338,7 @@ function renderNumbers(rifa){
         if(n.status === "reserved") return;
         arr.push(numTxt);
       }
+
       $("buyerNumbers").value = arr.join(", ");
     };
 
@@ -300,12 +347,12 @@ function renderNumbers(rifa){
 }
 
 // =====================
-// RESERVAR / FINALIZAR
+// FINALIZAR COMPRA
 // =====================
 $("btnReserve").onclick = () => {
   const name = $("buyerName").value.trim();
   const phone = $("buyerPhone").value.trim();
-  let nums = $("buyerNumbers").value.trim();
+  const nums = $("buyerNumbers").value.trim();
 
   if(!name || !phone || !nums){
     $("payInfo").innerHTML = "❌ Preencha nome, telefone e números.";
@@ -326,12 +373,14 @@ $("btnReserve").onclick = () => {
     }
   }
 
+  // reservar
   chosenInts.forEach(n=>{
     const numObj = rifa.numbers.find(z => z.num === n);
     numObj.status = "reserved";
     numObj.buyer = {name, phone};
   });
 
+  // pedido
   const order = {
     id: "ord_" + Date.now(),
     rifaId: rifa.id,
@@ -383,11 +432,13 @@ $("btnLookup").onclick = () => {
       <b>${o.rifaTitle}</b><br>
       Nº: ${o.numbers.join(", ")}<br>
       Total: ${money(o.total)}<br>
-      Status: <b style="color:${o.status==='paid'?'#2fda8f':'#ffb020'}">${o.status==='paid'?'PAGO':'PENDENTE'}</b>
+      Status: <b style="color:${o.status==='paid'?'#2fda8f':'#ffb020'}">
+        ${o.status==='paid'?'PAGO':'PENDENTE'}
+      </b>
     </div>
   `).join("");
 };
 
-// inicial
+// init
 renderResultsBox();
 renderRifas();
