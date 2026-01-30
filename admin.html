@@ -57,8 +57,19 @@
 
     <hr class="hr">
 
-    <h2>📌 Rifas criadas</h2>
-    <div id="adminRifas" class="grid"></div>
+    <h2>🏆 Publicar resultado (Sorteio)</h2>
+    <p class="mini">Coloque o número sorteado e publique o ganhador no site.</p>
+
+    <label class="label">Escolha a rifa</label>
+    <select class="input" id="resultRifaSelect"></select>
+
+    <label class="label">Número sorteado</label>
+    <input class="input" id="resultNumber" type="number" placeholder="Ex: 37">
+
+    <button class="btn primary" id="btnPublishResult">Publicar ganhador</button>
+    <button class="btn" id="btnClearResult" style="margin-top:10px">Remover resultado</button>
+
+    <div class="box" id="resultMsg">Nenhum resultado publicado ainda.</div>
 
     <hr class="hr">
 
@@ -79,6 +90,11 @@
         Dica: O WhatsApp será aberto automaticamente para cada comprador.
       </div>
     </div>
+
+    <hr class="hr">
+
+    <h2>📌 Rifas criadas</h2>
+    <div id="adminRifas" class="grid"></div>
 
     <hr class="hr">
 
