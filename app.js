@@ -71,8 +71,8 @@ function fireConfetti(durationMs = 2500){
 
     const fall = Math.random() * 2 + 2.5; // segundos
     piece.animate([
-      { transform: `translateY(0) rotate(0deg)`, filter: "blur(0px)" },
-      { transform: `translateY(110vh) rotate(${Math.random()*720}deg)`, filter: "blur(0.2px)" }
+      { transform: `translateY(0) rotate(0deg)` },
+      { transform: `translateY(110vh) rotate(${Math.random()*720}deg)` }
     ], {
       duration: fall * 1000,
       easing: "linear",
@@ -90,6 +90,23 @@ function fireConfetti(durationMs = 2500){
       setTimeout(()=>container.remove(), 1200);
     }
   }, 160);
+}
+
+// =====================
+// GERAR NÚMEROS ALEATÓRIOS LIVRES
+// =====================
+function getRandomFreeNumbers(rifa, qty){
+  const free = rifa.numbers.filter(n => n.status === "free").map(n => n.num);
+
+  if(qty > free.length) return null;
+
+  // embaralhar
+  for(let i=free.length-1;i>0;i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [free[i], free[j]] = [free[j], free[i]];
+  }
+
+  return free.slice(0, qty);
 }
 
 function renderRifas(){
@@ -157,9 +174,31 @@ function openModal(rifaId){
   $("buyerPhone").value = "";
   $("buyerNumbers").value = "";
 
+  if($("randomQty")) $("randomQty").value = "";
+
   $("payInfo").innerHTML = `<b>Pagamento via Pix:</b><br>Chave: <span style="color:#fff">${rifa.pix}</span><br><br>Após reservar, envie o comprovante para confirmação.`;
 
   renderNumbers(rifa);
+
+  // ✅ botão aleatório
+  if($("btnRandom")){
+    $("btnRandom").onclick = () => {
+      const qty = parseInt(($("randomQty")?.value || "").trim(), 10);
+      if(!qty || qty < 1){
+        $("payInfo").innerHTML = "❌ Digite a quantidade de números aleatórios.";
+        return;
+      }
+
+      const picks = getRandomFreeNumbers(rifa, qty);
+      if(!picks){
+        $("payInfo").innerHTML = `❌ Não há números livres suficientes para gerar ${qty}.`;
+        return;
+      }
+
+      $("buyerNumbers").value = picks.map(pad2).join(", ");
+      $("payInfo").innerHTML = `✅ Gerado ${qty} números aleatórios! 🍀`;
+    };
+  }
 
   $("modal").classList.add("show");
 }
@@ -186,7 +225,6 @@ function renderNumbers(rifa){
     el.onclick = () => {
       if(n.status === "sold") return;
 
-      // seleciona/desseleciona no input
       let val = $("buyerNumbers").value.trim();
       let arr = val ? val.split(",").map(x=>x.trim()).filter(Boolean) : [];
 
@@ -194,7 +232,7 @@ function renderNumbers(rifa){
       if(arr.includes(numTxt)){
         arr = arr.filter(x=>x!==numTxt);
       }else{
-        if(n.status === "reserved") return; // já reservado
+        if(n.status === "reserved") return;
         arr.push(numTxt);
       }
       $("buyerNumbers").value = arr.join(", ");
@@ -220,7 +258,6 @@ $("btnReserve").onclick = () => {
   const chosen = nums.split(",").map(x=>x.trim()).filter(Boolean);
   const chosenInts = chosen.map(x => parseInt(x,10)).filter(n=>!isNaN(n));
 
-  // validar números
   for(const n of chosenInts){
     const numObj = rifa.numbers.find(z => z.num === n);
     if(!numObj || numObj.status !== "free"){
@@ -245,21 +282,19 @@ $("btnReserve").onclick = () => {
     buyerPhone: phone,
     numbers: chosenInts.map(pad2),
     total: chosenInts.length * rifa.price,
-    status: "reserved", // admin confirma pago
+    status: "reserved",
     createdAt: new Date().toISOString()
   };
 
   data.orders.push(order);
   saveData(data);
 
-  // ✅ mensagem + boa sorte
   $("payInfo").innerHTML = `✅ Reserva feita com sucesso!<br><br>
 🍀 <b>BOA SORTE!</b> Você já está concorrendo.<br><br>
 <b>Total:</b> ${money(order.total)}<br>
 <b>Pix:</b> <span style="color:#fff">${rifa.pix}</span><br><br>
 Envie o comprovante para o admin confirmar.`;
 
-  // ✅ confete
   fireConfetti(2500);
 
   renderNumbers(rifa);
