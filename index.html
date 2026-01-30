@@ -109,6 +109,19 @@
         <div class="chips" id="selectedChips"></div>
       </div>
 
+      <!-- ✅ PROMOÇÕES (NOVO) -->
+      <div class="field">
+        <label>🔥 Promoções rápidas</label>
+        <div class="promo-actions">
+          <button class="btn" type="button" onclick="addRandomNumbers(1)">+1 número</button>
+          <button class="btn" type="button" onclick="addRandomNumbers(3)">3 números (promo)</button>
+          <button class="btn" type="button" onclick="addRandomNumbers(5)">5 números (promo)</button>
+        </div>
+        <div class="promo-hint">
+          ✅ 3 números por <b>R$10</b> • ✅ 5 números por <b>R$20</b>
+        </div>
+      </div>
+
       <div class="paybox">
         <div>
           <div class="pay-title">Pagamento via PIX</div>
@@ -309,10 +322,72 @@
       if (!selectedNumbers.length) chips.innerHTML = `<span class="muted">Nenhum número selecionado</span>`;
     }
 
+    // ✅ calcula total com promoções
+    function calcTotalWithPromo(pricePerNumber, qty) {
+      // promo: 5 por 20
+      const promo5 = Math.floor(qty / 5);
+      qty = qty % 5;
+
+      // promo: 3 por 10
+      const promo3 = Math.floor(qty / 3);
+      qty = qty % 3;
+
+      const total =
+        (promo5 * 20) +
+        (promo3 * 10) +
+        (qty * pricePerNumber);
+
+      return total;
+    }
+
     function updateTotal() {
       const rifa = data.rifas[currentRifaIndex] || { price: 0 };
-      const total = (rifa.price || 0) * selectedNumbers.length;
+      const price = (rifa.price || 0);
+      const total = calcTotalWithPromo(price, selectedNumbers.length);
       document.getElementById("totalValue").innerText = `Total: ${money(total)}`;
+    }
+
+    // ✅ pega números disponíveis aleatórios e adiciona
+    function addRandomNumbers(qty) {
+      if (currentRifaIndex === null) return;
+
+      const rifa = data.rifas[currentRifaIndex];
+      const totalNumbers = rifa.totalNumbers || 100;
+      const reserved = rifa.reserved || [];
+      const reservedSet = new Set(reserved.map(r => r.n));
+      const alreadySelected = new Set(selectedNumbers);
+
+      const available = [];
+      for (let n = 1; n <= totalNumbers; n++) {
+        if (!reservedSet.has(n) && !alreadySelected.has(n)) available.push(n);
+      }
+
+      if (!available.length) {
+        alert("Não há mais números disponíveis.");
+        return;
+      }
+
+      // Embaralha
+      for (let i = available.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [available[i], available[j]] = [available[j], available[i]];
+      }
+
+      const toAdd = available.slice(0, qty);
+
+      toAdd.forEach(n => {
+        selectedNumbers.push(n);
+      });
+
+      // marca visualmente
+      const nums = document.querySelectorAll(`#numbers_${currentRifaIndex} .num`);
+      nums.forEach(btn => {
+        const num = parseInt(btn.innerText, 10);
+        if (selectedNumbers.includes(num)) btn.classList.add("selected");
+      });
+
+      updateSelectedChips();
+      updateTotal();
     }
 
     function copyPix() {
@@ -346,7 +421,7 @@
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
-      const total = (rifa.price || 0) * selectedNumbers.length;
+      const total = calcTotalWithPromo((rifa.price || 0), selectedNumbers.length);
 
       const msg = encodeURIComponent(
         `Olá! Quero participar da Rifa: ${rifa.title}\n` +
