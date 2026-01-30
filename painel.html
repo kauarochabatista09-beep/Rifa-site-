@@ -99,13 +99,22 @@
         </div>
 
         <div class="field">
-          <label>Preço por número</label>
-          <input id="price" type="number" value="10" />
+          <label>Preço por número (valor normal)</label>
+          <input id="price" type="number" value="5" />
         </div>
 
         <div class="field">
-          <label>Qtd de números</label>
-          <input id="totalNumbers" type="number" value="100" />
+          <label>Qtd de números (você escolhe)</label>
+          <input id="totalNumbers" type="number" value="10000" />
+        </div>
+
+        <!-- ✅ NOVO: formato do número -->
+        <div class="field">
+          <label>Formato do número</label>
+          <select id="digits">
+            <option value="2">2 dígitos (01, 02...)</option>
+            <option value="5" selected>5 dígitos (00001, 00002...)</option>
+          </select>
         </div>
       </div>
 
@@ -145,7 +154,9 @@
       data = defaultData;
     }
 
-    const pad2 = (n) => String(n).padStart(2,"0");
+    function padN(n, digits){
+      return String(n).padStart(digits || 2, "0");
+    }
 
     function login(){
       const u = document.getElementById("user").value.trim();
@@ -180,9 +191,20 @@
       const imageUrl = document.getElementById("imageUrl").value.trim();
       const price = Number(document.getElementById("price").value);
       const totalNumbers = Number(document.getElementById("totalNumbers").value);
+      const digits = Number(document.getElementById("digits").value);
 
       if(!title || !price || !totalNumbers){
         alert("Preencha título, preço e quantidade.");
+        return;
+      }
+
+      if(totalNumbers < 10){
+        alert("Coloque no mínimo 10 números.");
+        return;
+      }
+
+      if(digits === 5 && totalNumbers > 99999){
+        alert("Para 5 dígitos o máximo recomendado é 99.999 números.");
         return;
       }
 
@@ -193,6 +215,7 @@
         imageUrl,
         price,
         totalNumbers,
+        digits,          // ✅ NOVO
         reserved:[]
       });
 
@@ -221,7 +244,6 @@
       alert("Números liberados ✅");
     }
 
-    // compradores únicos por Whats
     function uniquePhonesFromReserved(reserved){
       const unique = {};
       reserved.forEach(r => {
@@ -257,7 +279,6 @@
       }, 1200);
     }
 
-    // ===== GANHADOR (SALVAR) =====
     function addWinner(rifa, win){
       const winner = {
         rifaId: rifa.id,
@@ -274,10 +295,10 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       renderWinners();
 
-      alert(`🏆 Vencedor salvo!\n${winner.name}\nNúmero: ${pad2(winner.number)}`);
+      const digits = rifa.digits || 2;
+      alert(`🏆 Vencedor salvo!\n${winner.name}\nNúmero: ${padN(winner.number, digits)}`);
     }
 
-    // ===== SORTEIO AUTOMÁTICO =====
     function sortearAuto(i){
       const rifa = data.rifas[i];
       const reserved = (rifa.reserved || []);
@@ -291,7 +312,6 @@
       addWinner(rifa, win);
     }
 
-    // ===== SORTEIO MANUAL =====
     function sortearManual(i){
       const rifa = data.rifas[i];
       const reserved = (rifa.reserved || []);
@@ -301,7 +321,7 @@
         return;
       }
 
-      const input = prompt("Digite o NÚMERO sorteado (ex: 7 ou 07):");
+      const input = prompt("Digite o NÚMERO sorteado (ex: 7 ou 00007):");
       if(!input) return;
 
       const num = Number(input);
@@ -319,7 +339,6 @@
       addWinner(rifa, win);
     }
 
-    // ===== MENSAGEM TODOS =====
     function msgTodos(i){
       const rifa = data.rifas[i];
       const reserved = (rifa.reserved || []);
@@ -333,11 +352,9 @@
       if(!msg) return;
 
       const unique = uniquePhonesFromReserved(reserved);
-
       openWhatsToMany(unique, (name)=> `Olá ${name}! ${msg}`);
     }
 
-    // ===== RETA FINAL =====
     function msgRetaFinal(i){
       const rifa = data.rifas[i];
       const reserved = (rifa.reserved || []);
@@ -358,12 +375,10 @@
 Rifa: *${rifa.title}*
 Faltam apenas *${faltam} números*!
 
-🔥 Garanta mais números agora pra aumentar suas chances!
-✅ Se quiser escolher mais números, me chama aqui.`
+🔥 Garanta mais números agora pra aumentar suas chances!`
       ));
     }
 
-    // ===== PAGAMENTO PENDENTE =====
     function msgPendente(i){
       const rifa = data.rifas[i];
       const reserved = (rifa.reserved || []);
@@ -380,11 +395,10 @@ Faltam apenas *${faltam} números*!
 Estou conferindo aqui a rifa: *${rifa.title}*.
 Se você já fez o PIX, me manda o comprovante por favor ✅
 
-Se ainda não pagou, ainda dá tempo de confirmar seus números hoje 🔥`
+Se ainda não pagou, ainda dá tempo de confirmar hoje 🔥`
       ));
     }
 
-    // ===== ÚLTIMAS HORAS =====
     function msgUltimasHoras(i){
       const rifa = data.rifas[i];
       const reserved = (rifa.reserved || []);
@@ -399,7 +413,7 @@ Se ainda não pagou, ainda dá tempo de confirmar seus números hoje 🔥`
 `Olá ${name}! ⏳🔥
 
 *ÚLTIMAS HORAS* da rifa: *${rifa.title}* ⚡
-Se quiser garantir mais números, me chama agora ✅
+Se quiser garantir mais chances, me chama agora ✅
 
 Boa sorte 🍀`
       ));
@@ -413,13 +427,13 @@ Boa sorte 🍀`
       window.open(`https://wa.me/${p.startsWith("55")?p:"55"+p}?text=${msg}`, "_blank");
     }
 
-    function chamarGanhador(phone, name, num, rifaTitle){
+    function chamarGanhador(phone, name, num, rifaTitle, digits){
       const p = String(phone || "").replace(/\D/g,"");
       if(!p){ alert("WhatsApp do ganhador não encontrado."); return; }
 
       const msg = encodeURIComponent(
         `🏆 Parabéns ${name}! Você GANHOU a rifa: ${rifaTitle}\n` +
-        `Número vencedor: ${pad2(num)}\n\n` +
+        `Número vencedor: ${padN(num, digits || 2)}\n\n` +
         `Me chama aqui pra combinarmos a entrega ✅`
       );
       window.open(`https://wa.me/${p.startsWith("55")?p:"55"+p}?text=${msg}`, "_blank");
@@ -432,7 +446,6 @@ Boa sorte 🍀`
       renderWinners();
     }
 
-    // ===== LISTA RIFAS =====
     function renderList(){
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -447,6 +460,8 @@ Boa sorte 🍀`
         div.className = "rifa-card";
         div.style.marginTop = "12px";
 
+        const digits = r.digits || 2;
+
         const img = r.imageUrl ? `
           <div class="rifa-photo">
             <img src="${r.imageUrl}" alt="Foto do prêmio" />
@@ -454,7 +469,7 @@ Boa sorte 🍀`
         ` : "";
 
         const buyers = (r.reserved || []).slice().reverse().map(b=>{
-          const num = pad2(b.n);
+          const num = padN(b.n, digits);
           return `
             <div style="display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid rgba(255,255,255,0.06);">
               <div>
@@ -473,7 +488,7 @@ Boa sorte 🍀`
             <div>
               <h3 class="gold3d" style="font-size:18px;">${r.title}</h3>
               <div class="rifa-sub">${r.subtitle || ""}</div>
-              <div class="rifa-sub">Preço: R$ ${r.price} • Números: ${r.totalNumbers}</div>
+              <div class="rifa-sub">Preço: R$ ${r.price} • Números: ${r.totalNumbers} • Formato: ${digits} dígitos</div>
               <div class="rifa-sub">Reservados: ${(r.reserved||[]).length}</div>
             </div>
 
@@ -500,7 +515,6 @@ Boa sorte 🍀`
       });
     }
 
-    // ===== GANHADORES =====
     function renderWinners(){
       const winners = document.getElementById("winners");
       winners.innerHTML = "";
@@ -520,17 +534,21 @@ Boa sorte 🍀`
         const dt = new Date(w.date);
         const dateStr = dt.toLocaleString("pt-BR");
 
+        // tenta pegar digits da rifa
+        const rifa = (data.rifas || []).find(x=>x.id === w.rifaId) || {};
+        const digits = rifa.digits || 2;
+
         div.innerHTML = `
           <div class="rifa-head">
             <div>
               <h3 class="gold3d" style="font-size:18px;">🏆 ${w.name}</h3>
               <div class="rifa-sub">Rifa: ${w.rifaTitle}</div>
-              <div class="rifa-sub">Número vencedor: <b>${pad2(w.number)}</b></div>
+              <div class="rifa-sub">Número vencedor: <b>${padN(w.number, digits)}</b></div>
               <div class="rifa-sub">Whats: <b>${w.phone || "-"}</b></div>
               <div class="rifa-sub">Data: ${dateStr}</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;min-width:220px;">
-              <button class="btn" onclick="chamarGanhador('${w.phone}','${(w.name||"").replace(/'/g,"")}',${w.number},'${(w.rifaTitle||"").replace(/'/g,"")}')">📲 Chamar ganhador</button>
+              <button class="btn" onclick="chamarGanhador('${w.phone}','${(w.name||"").replace(/'/g,"")}',${w.number},'${(w.rifaTitle||"").replace(/'/g,"")}',${digits})">📲 Chamar ganhador</button>
               <button class="btn" onclick="removeWinner(${i})">Remover</button>
             </div>
           </div>
