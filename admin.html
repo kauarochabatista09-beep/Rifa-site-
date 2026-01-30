@@ -2,108 +2,223 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin - Rifas Premium</title>
-  <link rel="stylesheet" href="./style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel ADM - Rifas Premium</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">ADMIN</div>
+        <div class="brand-text">
+          <div class="brand-line">
+            <span class="brand-title gold3d">Painel ADM</span>
+            <span class="blue-bolt blink">⚡</span>
+          </div>
+          <div class="brand-sub">Crie rifas e edite sua chave PIX</div>
+        </div>
+      </div>
 
-<header class="topbar">
-  <a class="adminLink" href="./index.html">← Voltar</a>
-  <div class="brand">
-    <span class="logo">🔒</span>
-    <div>
-      <h1>Painel Admin</h1>
-      <p>Somente o dono</p>
+      <a class="btn-admin" href="index.html">Voltar ao site</a>
     </div>
-  </div>
-</header>
 
-<main class="container">
-
-  <section class="card">
-    <h2>Login do Administrador</h2>
-    <p class="mini">Somente você consegue entrar.</p>
-
-    <label class="label">Senha Admin</label>
-    <input class="input" id="adminPass" type="password" placeholder="Digite sua senha">
-    <button class="btn primary" id="btnLogin">Entrar</button>
-
-    <div id="loginMsg" class="box"></div>
-  </section>
-
-  <section class="card hidden" id="adminPanel">
-    <h2>✅ Criar nova rifa</h2>
-
-    <label class="label">Título</label>
-    <input class="input" id="newTitle" placeholder="Ex: iPhone 15 Pro">
-
-    <label class="label">Descrição</label>
-    <textarea class="input" id="newDesc" placeholder="Ex: Rifa com sorteio ao vivo..." rows="3"></textarea>
-
-    <label class="label">Imagem (URL)</label>
-    <input class="input" id="newImg" placeholder="Cole o link da imagem (ex: imgur)">
-
-    <label class="label">Preço por número (R$)</label>
-    <input class="input" id="newPrice" type="number" step="0.01" placeholder="Ex: 10">
-
-    <label class="label">Quantidade de números</label>
-    <input class="input" id="newTotal" type="number" placeholder="Ex: 100">
-
-    <label class="label">Chave Pix</label>
-    <input class="input" id="newPix" placeholder="Sua chave pix">
-
-    <button class="btn" id="btnCreateRifa">Criar rifa</button>
-
-    <hr class="hr">
-
-    <h2>🏆 Publicar resultado (Sorteio)</h2>
-    <p class="mini">Coloque o número sorteado e publique o ganhador no site.</p>
-
-    <label class="label">Escolha a rifa</label>
-    <select class="input" id="resultRifaSelect"></select>
-
-    <label class="label">Número sorteado</label>
-    <input class="input" id="resultNumber" type="number" placeholder="Ex: 37">
-
-    <button class="btn primary" id="btnPublishResult">Publicar ganhador</button>
-    <button class="btn" id="btnClearResult" style="margin-top:10px">Remover resultado</button>
-
-    <div class="box" id="resultMsg">Nenhum resultado publicado ainda.</div>
-
-    <hr class="hr">
-
-    <div class="card" style="margin-bottom:14px">
-      <h2>📣 Avisos WhatsApp</h2>
-      <p class="mini">
-        Clique abaixo para avisar todos os compradores quando restarem poucos números.
-      </p>
-
-      <label class="label">Limite de poucos números (recomendado: 10)</label>
-      <input id="fewLeftLimit" class="input" type="number" value="10" min="1"/>
-
-      <button class="btn primary" id="btnWarnWhatsapp">
-        📣 Avisar TODOS no WhatsApp
-      </button>
-
-      <div class="box" id="warnMsg">
-        Dica: O WhatsApp será aberto automaticamente para cada comprador.
+    <div class="marquee-wrap">
+      <div class="marquee">
+        <div class="marquee-track">
+          <span class="marquee-item">✨ PAINEL ADMIN • CRIE SUA RIFA • EDITE PIX • GERENCIE NÚMEROS ✨</span>
+          <span class="marquee-item">✨ PAINEL ADMIN • CRIE SUA RIFA • EDITE PIX • GERENCIE NÚMEROS ✨</span>
+          <span class="marquee-item">✨ PAINEL ADMIN • CRIE SUA RIFA • EDITE PIX • GERENCIE NÚMEROS ✨</span>
+        </div>
       </div>
     </div>
+  </header>
 
-    <hr class="hr">
+  <main class="container">
 
-    <h2>📌 Rifas criadas</h2>
-    <div id="adminRifas" class="grid"></div>
+    <div class="rifa-card" id="loginBox">
+      <h2 class="gold3d">Login do Admin</h2>
+      <p class="muted" style="margin:10px 0;">Acesse com seu usuário e senha</p>
 
-    <hr class="hr">
+      <div class="modal-grid">
+        <div class="field">
+          <label>Usuário</label>
+          <input id="user" placeholder="admin" />
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <input id="pass" type="password" placeholder="Kaua2025" />
+        </div>
+      </div>
 
-    <h2>🧾 Compras / Reservas</h2>
-    <div id="adminOrders" class="box"></div>
-  </section>
+      <button class="btn-primary" onclick="login()">Entrar</button>
+    </div>
 
-</main>
+    <div class="rifa-card" id="panel" style="display:none;">
+      <h2 class="gold3d">Configurar Rifas</h2>
+      <p class="muted" style="margin:10px 0;">Crie rifas novas e edite chave PIX</p>
 
-<script src="./admin.js"></script>
+      <div class="field">
+        <label>Chave PIX</label>
+        <input id="pix" />
+      </div>
+
+      <div class="field" style="margin-top:12px;">
+        <label>WhatsApp do Admin (com DDD / país)</label>
+        <input id="whats" placeholder="5511989448748" />
+      </div>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:18px 0;">
+
+      <h3 class="gold3d" style="font-size:18px;">Criar nova rifa</h3>
+
+      <div class="modal-grid" style="margin-top:10px;">
+        <div class="field">
+          <label>Título</label>
+          <input id="title" placeholder="Ex: Pix R$ 500" />
+        </div>
+        <div class="field">
+          <label>Subtítulo</label>
+          <input id="subtitle" placeholder="Ex: Sorteio ao vivo no Instagram" />
+        </div>
+
+        <div class="field">
+          <label>Preço por número</label>
+          <input id="price" type="number" value="10" />
+        </div>
+
+        <div class="field">
+          <label>Qtd de números</label>
+          <input id="totalNumbers" type="number" value="100" />
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="createRifa()">Criar rifa</button>
+
+      <h3 class="gold3d" style="font-size:18px;margin-top:18px;">Rifas criadas</h3>
+      <div id="list"></div>
+
+      <button class="btn" style="margin-top:14px;width:100%;" onclick="saveConfig()">Salvar configurações</button>
+    </div>
+
+  </main>
+
+  <script>
+    const STORAGE_KEY = "rifas_premium_data_v1";
+
+    const defaultData = {
+      pixKey: "b3764325-afe3-40c4-a0fb-a532b88c0717",
+      whatsapp: "5511989448748",
+      rifas: []
+    };
+
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultData;
+
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
+      data = defaultData;
+    }
+
+    function login(){
+      const u = document.getElementById("user").value.trim();
+      const p = document.getElementById("pass").value.trim();
+
+      if(u === "admin" && p === "Kaua2025"){
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("panel").style.display = "block";
+
+        document.getElementById("pix").value = data.pixKey;
+        document.getElementById("whats").value = data.whatsapp;
+
+        renderList();
+      }else{
+        alert("Login inválido!");
+      }
+    }
+
+    function saveConfig(){
+      data.pixKey = document.getElementById("pix").value.trim();
+      data.whatsapp = document.getElementById("whats").value.trim();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      alert("Configurações salvas ✅");
+      renderList();
+    }
+
+    function createRifa(){
+      const title = document.getElementById("title").value.trim();
+      const subtitle = document.getElementById("subtitle").value.trim();
+      const price = Number(document.getElementById("price").value);
+      const totalNumbers = Number(document.getElementById("totalNumbers").value);
+
+      if(!title || !price || !totalNumbers){
+        alert("Preencha título, preço e quantidade.");
+        return;
+      }
+
+      data.rifas.push({
+        title,
+        subtitle,
+        price,
+        totalNumbers,
+        reserved:[]
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      document.getElementById("title").value = "";
+      document.getElementById("subtitle").value = "";
+
+      renderList();
+      alert("Rifa criada ✅");
+    }
+
+    function deleteRifa(i){
+      if(!confirm("Quer apagar essa rifa?")) return;
+      data.rifas.splice(i,1);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderList();
+    }
+
+    function clearReserved(i){
+      if(!confirm("Liberar todos os números dessa rifa?")) return;
+      data.rifas[i].reserved = [];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderList();
+      alert("Números liberados ✅");
+    }
+
+    function renderList(){
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      if(!data.rifas.length){
+        list.innerHTML = `<p class="muted" style="margin-top:8px;">Nenhuma rifa criada ainda.</p>`;
+        return;
+      }
+
+      data.rifas.forEach((r,i)=>{
+        const div = document.createElement("div");
+        div.className = "rifa-card";
+        div.style.marginTop = "12px";
+
+        div.innerHTML = `
+          <div class="rifa-head">
+            <div>
+              <h3 class="gold3d" style="font-size:18px;">${r.title}</h3>
+              <div class="rifa-sub">${r.subtitle || ""}</div>
+              <div class="rifa-sub">Preço: R$ ${r.price} • Números: ${r.totalNumbers}</div>
+              <div class="rifa-sub">Reservados: ${(r.reserved||[]).length}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:190px;">
+              <button class="btn" onclick="clearReserved(${i})">Liberar números</button>
+              <button class="btn" onclick="deleteRifa(${i})">Apagar rifa</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+  </script>
 </body>
-</html
+</html>
