@@ -1,6 +1,7 @@
 const $ = (id) => document.getElementById(id);
 
 const LS_KEY = "rifa_site_data_v1";
+const RESULTS_KEY = "rifa_site_results_v1";
 
 function loadData(){
   const raw = localStorage.getItem(LS_KEY);
@@ -18,6 +19,15 @@ function saveData(data){
   localStorage.setItem(LS_KEY, JSON.stringify(data));
 }
 
+function loadResults(){
+  const raw = localStorage.getItem(RESULTS_KEY);
+  if(raw) return JSON.parse(raw);
+
+  const init = { results: [] };
+  localStorage.setItem(RESULTS_KEY, JSON.stringify(init));
+  return init;
+}
+
 function money(v){
   return (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
@@ -26,7 +36,17 @@ function pad2(n){
   return String(n).padStart(2,"0");
 }
 
+// ✅ mascarar telefone pra mostrar no site público
+function maskPhone(phone){
+  if(!phone) return "-";
+  const digits = String(phone).replace(/\D/g,"");
+  if(digits.length < 8) return "*****";
+  const last4 = digits.slice(-4);
+  return `(**) *****-${last4}`;
+}
+
 let data = loadData();
+let resultsData = loadResults();
 let currentRifaId = null;
 
 function openSidebar(){
@@ -69,7 +89,7 @@ function fireConfetti(durationMs = 2500){
     piece.style.borderRadius = "4px";
     piece.style.transform = `rotate(${Math.random()*360}deg)`;
 
-    const fall = Math.random() * 2 + 2.5; // segundos
+    const fall = Math.random() * 2 + 2.5;
     piece.animate([
       { transform: `translateY(0) rotate(0deg)` },
       { transform: `translateY(110vh) rotate(${Math.random()*720}deg)` }
@@ -100,7 +120,6 @@ function getRandomFreeNumbers(rifa, qty){
 
   if(qty > free.length) return null;
 
-  // embaralhar
   for(let i=free.length-1;i>0;i--){
     const j = Math.floor(Math.random() * (i+1));
     [free[i], free[j]] = [free[j], free[i]];
@@ -109,6 +128,41 @@ function getRandomFreeNumbers(rifa, qty){
   return free.slice(0, qty);
 }
 
+// =====================
+// RESULTADOS PÚBLICOS (LISTA)
+// =====================
+function renderResultsBox(){
+  const box = $("resultBox");
+  const content = $("resultContent");
+  if(!box || !content) return;
+
+  resultsData = loadResults(); // recarregar
+
+  if(!resultsData.results || resultsData.results.length === 0){
+    box.classList.add("hidden");
+    return;
+  }
+
+  box.classList.remove("hidden");
+
+  const list = [...resultsData.results].sort((a,b)=> new Date(b.publishedAt) - new Date(a.publishedAt));
+
+  content.innerHTML = list.map(r => `
+    <div style="padding:10px;border-bottom:1px solid rgba(255,255,255,.08)">
+      <b>${r.rifaTitle}</b><br>
+      Número sorteado: <b>${pad2(r.luckyNumber)}</b><br>
+      Ganhador(a): <b>${r.winnerName || "Não encontrado"}</b><br>
+      Telefone: <b>${maskPhone(r.winnerPhone)}</b><br>
+      <span style="color:rgba(255,255,255,.55);font-size:12px">
+        Publicado em: ${new Date(r.publishedAt).toLocaleString("pt-BR")}
+      </span>
+    </div>
+  `).join("");
+}
+
+// =====================
+// RENDER RIFAS
+// =====================
 function renderRifas(){
   const grid = $("rifasGrid");
   grid.innerHTML = "";
@@ -126,7 +180,6 @@ function renderRifas(){
     const badgeClass = freeCount > 0 ? "ok" : "bad";
     const badgeText  = freeCount > 0 ? "Disponível" : "Esgotado";
 
-    // ✅ porcentagem (vendidos + reservados)
     const progressPct = Math.round(((soldCount + resCount) / r.numbers.length) * 100);
 
     const el = document.createElement("div");
@@ -160,6 +213,9 @@ function renderRifas(){
   });
 }
 
+// =====================
+// MODAL
+// =====================
 function openModal(rifaId){
   const rifa = data.rifas.find(x => x.id === rifaId);
   if(!rifa) return;
@@ -173,14 +229,12 @@ function openModal(rifaId){
   $("buyerName").value = "";
   $("buyerPhone").value = "";
   $("buyerNumbers").value = "";
-
   if($("randomQty")) $("randomQty").value = "";
 
   $("payInfo").innerHTML = `<b>Pagamento via Pix:</b><br>Chave: <span style="color:#fff">${rifa.pix}</span><br><br>Após reservar, envie o comprovante para confirmação.`;
 
   renderNumbers(rifa);
 
-  // ✅ botão aleatório
   if($("btnRandom")){
     $("btnRandom").onclick = () => {
       const qty = parseInt(($("randomQty")?.value || "").trim(), 10);
@@ -213,6 +267,9 @@ $("modal").addEventListener("click",(e)=>{
   if(e.target.id === "modal") closeModal();
 });
 
+// =====================
+// NÚMEROS
+// =====================
 function renderNumbers(rifa){
   const grid = $("numbersGrid");
   grid.innerHTML = "";
@@ -242,6 +299,9 @@ function renderNumbers(rifa){
   });
 }
 
+// =====================
+// RESERVAR / FINALIZAR
+// =====================
 $("btnReserve").onclick = () => {
   const name = $("buyerName").value.trim();
   const phone = $("buyerPhone").value.trim();
@@ -266,14 +326,12 @@ $("btnReserve").onclick = () => {
     }
   }
 
-  // reservar
   chosenInts.forEach(n=>{
     const numObj = rifa.numbers.find(z => z.num === n);
     numObj.status = "reserved";
     numObj.buyer = {name, phone};
   });
 
-  // criar pedido
   const order = {
     id: "ord_" + Date.now(),
     rifaId: rifa.id,
@@ -301,7 +359,9 @@ Envie o comprovante para o admin confirmar.`;
   renderRifas();
 };
 
-// lookup compras do comprador
+// =====================
+// MINHAS COMPRAS
+// =====================
 $("btnLookup").onclick = () => {
   const phone = $("lookupPhone").value.trim();
   if(!phone){
@@ -328,4 +388,6 @@ $("btnLookup").onclick = () => {
   `).join("");
 };
 
+// inicial
+renderResultsBox();
 renderRifas();
