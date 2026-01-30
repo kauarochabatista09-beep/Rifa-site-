@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ganhadores 🏆 - Rifas Premium</title>
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="ganhadores.css">
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">🏆</div>
+        <div class="brand-text">
+          <div class="brand-line">
+            <span class="brand-title gold3d">Ganhadores</span>
+            <span class="blue-bolt blink">⚡</span>
+          </div>
+          <div class="brand-sub">Confira os últimos vencedores</div>
+        </div>
+      </div>
+
+      <a class="btn" href="index.html" style="text-decoration:none;">Voltar</a>
+    </div>
+  </header>
+
+  <!-- CONFETES -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <main class="container">
+    <div class="winner-hero">
+      <h2 class="gold3d" style="font-size:24px;">🎉 Parabéns aos ganhadores!</h2>
+      <p class="muted">Aqui aparecem os ganhadores sorteados pelo Admin.</p>
+    </div>
+
+    <section id="winnersList"></section>
+
+    <div class="footer-note">
+      <p>© <span id="year"></span> Rifas Premium</p>
+    </div>
+  </main>
+
+<script>
+  document.getElementById("year").innerText = new Date().getFullYear();
+
+  const STORAGE_KEY = "rifas_premium_data_v1";
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  const winners = (data.ganhadores || []);
+
+  const list = document.getElementById("winnersList");
+
+  function formatDate(d){
+    try{
+      return new Date(d).toLocaleString("pt-BR");
+    }catch(e){
+      return "";
+    }
+  }
+
+  // Render winners
+  if(!winners.length){
+    list.innerHTML = `
+      <div class="empty">
+        <h3>Nenhum ganhador ainda</h3>
+        <p>Assim que o admin sortear, vai aparecer aqui 🏆</p>
+      </div>
+    `;
+  }else{
+    winners.forEach(w=>{
+      const num = String(w.number).padStart(2,"0");
+
+      // Foto automática (avatar) baseado no nome
+      const avatar = `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(w.name)}&backgroundColor=0b1220`;
+
+      const card = document.createElement("div");
+      card.className = "winner-card";
+      card.innerHTML = `
+        <div class="winner-left">
+          <div class="winner-photo goldpulse">
+            <img src="${avatar}" alt="Foto do ganhador">
+          </div>
+        </div>
+
+        <div class="winner-info">
+          <div class="winner-name gold3d">${w.name}</div>
+          <div class="winner-sub">Rifa: <b>${w.rifaTitle}</b></div>
+          <div class="winner-sub">Número vencedor: <b class="winner-num">${num}</b></div>
+          <div class="winner-sub">Data: ${formatDate(w.date)}</div>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  // CONFETTI
+  const canvas = document.getElementById("confettiCanvas");
+  const ctx = canvas.getContext("2d");
+
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  const confettis = [];
+  const colors = ["#fff3b0","#d4af37","#2f8bff","#ffffff"];
+
+  function rand(min,max){return Math.random()*(max-min)+min;}
+
+  function createConfetti(){
+    for(let i=0;i<180;i++){
+      confettis.push({
+        x: rand(0, canvas.width),
+        y: rand(-canvas.height, 0),
+        s: rand(2, 6),
+        a: rand(0, Math.PI*2),
+        c: colors[Math.floor(Math.random()*colors.length)],
+        w: rand(10, 30),
+        h: rand(6, 16),
+      });
+    }
+  }
+  createConfetti();
+
+  let start = Date.now();
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    confettis.forEach(p=>{
+      p.y += p.s;
+      p.x += Math.sin(p.a) * 1.2;
+      p.a += 0.02;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.a);
+      ctx.fillStyle = p.c;
+      ctx.globalAlpha = 0.95;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+
+      if(p.y > canvas.height + 40){
+        p.y = rand(-200, -20);
+        p.x = rand(0, canvas.width);
+      }
+    });
+
+    // para o confete depois de 6s
+    if(Date.now() - start < 6000){
+      requestAnimationFrame(draw);
+    }else{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      canvas.style.display = "none";
+    }
+  }
+  draw();
+</script>
+
+</body>
+</html>
