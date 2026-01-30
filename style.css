@@ -569,3 +569,29 @@ body{
 .rifa-card, .empty, .menu-panel, .marquee{
   box-shadow: 0 20px 60px rgba(0,0,0,0.35);
 }
+.promocoes-rifa{
+  margin-top: 15px;
+  background: rgba(0,255,136,0.10);
+  border: 2px solid rgba(0,255,136,0.25);
+  padding: 15px;
+  border-radius: 14px;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+.promocoes-rifa h3{
+  margin: 0 0 10px 0;
+  color: #00ff88;
+  font-size: 18px;
+}
+
+.promocoes-rifa p{
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+.promocoes-rifa .aviso{
+  margin-top: 10px;
+  font-size: 13px;
+  opacity: 0.9;
+}
