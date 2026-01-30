@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel ADM - Rifas Premium</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">ADMIN</div>
+
+        <div class="brand-text">
+          <div class="brand-line">
+            <span class="brand-title gold3d">Painel ADM</span>
+            <span class="blue-bolt blink">⚡</span>
+          </div>
+          <div class="brand-sub">Crie rifas, edite PIX, sorteie e contate os compradores</div>
+        </div>
+      </div>
+
+      <a class="btn" href="index.html" style="text-decoration:none;">Voltar</a>
+    </div>
+
+    <div class="marquee-wrap">
+      <div class="marquee">
+        <div class="marquee-track">
+          <span class="marquee-item">✨ ADMIN • FOTO DO PRÊMIO • SORTEIO MANUAL/AUTO • WHATSAPP EM MASSA • GANHADORES 🏆 ✨</span>
+          <span class="marquee-item">✨ ADMIN • FOTO DO PRÊMIO • SORTEIO MANUAL/AUTO • WHATSAPP EM MASSA • GANHADORES 🏆 ✨</span>
+          <span class="marquee-item">✨ ADMIN • FOTO DO PRÊMIO • SORTEIO MANUAL/AUTO • WHATSAPP EM MASSA • GANHADORES 🏆 ✨</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- LOGIN -->
+    <div class="rifa-card" id="loginBox">
+      <h2 class="gold3d">Login do Admin</h2>
+      <p class="muted" style="margin:10px 0;">Acesse com seu usuário e senha</p>
+
+      <div class="modal-grid">
+        <div class="field">
+          <label>Usuário</label>
+          <input id="user" placeholder="admin" />
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <input id="pass" type="password" placeholder="Kaua2025" />
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="login()">Entrar</button>
+      <p class="muted" style="margin-top:10px;font-size:12px;">Dica: não compartilhe esse painel ✅</p>
+    </div>
+
+    <!-- PAINEL -->
+    <div class="rifa-card" id="panel" style="display:none;">
+      <h2 class="gold3d">Configurações</h2>
+
+      <div class="modal-grid">
+        <div class="field">
+          <label>Chave PIX</label>
+          <input id="pix" />
+        </div>
+
+        <div class="field">
+          <label>WhatsApp do Admin (com 55 + DDD)</label>
+          <input id="whats" placeholder="5511989448748" />
+        </div>
+      </div>
+
+      <button class="btn" style="margin-top:12px;width:100%;" onclick="saveConfig()">Salvar configurações</button>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:18px 0;">
+
+      <!-- CRIAR RIFA -->
+      <h3 class="gold3d" style="font-size:18px;">Criar nova rifa</h3>
+
+      <div class="modal-grid" style="margin-top:10px;">
+        <div class="field">
+          <label>Título</label>
+          <input id="title" placeholder="Ex: Pix R$ 500" />
+        </div>
+
+        <div class="field">
+          <label>Subtítulo</label>
+          <input id="subtitle" placeholder="Ex: Sorteio ao vivo no Instagram" />
+        </div>
+
+        <div class="field">
+          <label>Foto do prêmio (link da imagem)</label>
+          <input id="imageUrl" placeholder="Ex: https://..." />
+        </div>
+
+        <div class="field">
+          <label>Preço por número</label>
+          <input id="price" type="number" value="10" />
+        </div>
+
+        <div class="field">
+          <label>Qtd de números</label>
+          <input id="totalNumbers" type="number" value="100" />
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="createRifa()">Criar rifa</button>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:18px 0;">
+
+      <!-- RIFAS -->
+      <h3 class="gold3d" style="font-size:18px;">Rifas criadas</h3>
+      <div id="list"></div>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:18px 0;">
+
+      <!-- GANHADORES -->
+      <h3 class="gold3d" style="font-size:18px;">Ganhadores 🏆</h3>
+      <div id="winners"></div>
+
+      <button class="btn" style="margin-top:14px;width:100%;" onclick="logout()">Sair</button>
+    </div>
+
+  </main>
+
+  <script>
+    const STORAGE_KEY = "rifas_premium_data_v1";
+
+    const defaultData = {
+      pixKey: "b3764325-afe3-40c4-a0fb-a532b88c0717",
+      whatsapp: "5511989448748",
+      rifas: [],
+      ganhadores: []
+    };
+
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultData;
+
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
+      data = defaultData;
+    }
+
+    const pad2 = (n) => String(n).padStart(2,"0");
+
+    function login(){
+      const u = document.getElementById("user").value.trim();
+      const p = document.getElementById("pass").value.trim();
+
+      if(u === "admin" && p === "Kaua2025"){
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("panel").style.display = "block";
+
+        document.getElementById("pix").value = data.pixKey;
+        document.getElementById("whats").value = data.whatsapp;
+
+        renderList();
+        renderWinners();
+      }else{
+        alert("Login inválido!");
+      }
+    }
+
+    function logout(){ location.reload(); }
+
+    function saveConfig(){
+      data.pixKey = document.getElementById("pix").value.trim();
+      data.whatsapp = document.getElementById("whats").value.trim();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      alert("Configurações salvas ✅");
+    }
+
+    function createRifa(){
+      const title = document.getElementById("title").value.trim();
+      const subtitle = document.getElementById("subtitle").value.trim();
+      const imageUrl = document.getElementById("imageUrl").value.trim();
+      const price = Number(document.getElementById("price").value);
+      const totalNumbers = Number(document.getElementById("totalNumbers").value);
+
+      if(!title || !price || !totalNumbers){
+        alert("Preencha título, preço e quantidade.");
+        return;
+      }
+
+      data.rifas.push({
+        id: Date.now(),
+        title,
+        subtitle,
+        imageUrl,
+        price,
+        totalNumbers,
+        reserved:[]
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      document.getElementById("title").value = "";
+      document.getElementById("subtitle").value = "";
+      document.getElementById("imageUrl").value = "";
+
+      renderList();
+      alert("Rifa criada ✅");
+    }
+
+    function deleteRifa(i){
+      if(!confirm("Quer apagar essa rifa?")) return;
+      data.rifas.splice(i,1);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderList();
+    }
+
+    function clearReserved(i){
+      if(!confirm("Liberar TODOS os números dessa rifa?")) return;
+      data.rifas[i].reserved = [];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderList();
+      alert("Números liberados ✅");
+    }
+
+    // ===== GANHADOR (SALVAR) =====
+    function addWinner(rifa, win){
+      const winner = {
+        rifaId: rifa.id,
+        rifaTitle: rifa.title,
+        number: win.n,
+        name: win.name,
+        phone: win.phone,
+        date: new Date().toISOString()
+      };
+
+      data.ganhadores = data.ganhadores || [];
+      data.ganhadores.unshift(winner);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderWinners();
+
+      alert(`🏆 Vencedor salvo!\n${winner.name}\nNúmero: ${pad2(winner.number)}`);
+    }
+
+    // ===== SORTEIO AUTOMÁTICO =====
+    function sortearAuto(i){
+      const rifa = data.rifas[i];
+      const reserved = (rifa.reserved || []);
+
+      if(!reserved.length){
+        alert("Não tem números reservados nessa rifa.");
+        return;
+      }
+
+      const win = reserved[Math.floor(Math.random() * reserved.length)];
+      addWinner(rifa, win);
+    }
+
+    // ===== SORTEIO MANUAL (DIGITAR NÚMERO) =====
+    function sortearManual(i){
+      const rifa = data.rifas[i];
+      const reserved = (rifa.reserved || []);
+
+      if(!reserved.length){
+        alert("Não tem números reservados nessa rifa.");
+        return;
+      }
+
+      const input = prompt("Digite o NÚMERO sorteado (ex: 7 ou 07):");
+      if(!input) return;
+
+      const num = Number(input);
+      if(!num || num < 1 || num > (rifa.totalNumbers || 100)){
+        alert("Número inválido!");
+        return;
+      }
+
+      const win = reserved.find(x => Number(x.n) === num);
+      if(!win){
+        alert("Esse número não está reservado por ninguém.");
+        return;
+      }
+
+      addWinner(rifa, win);
+    }
+
+    // ===== MENSAGEM EM MASSA =====
+    function msgTodos(i){
+      const rifa = data.rifas[i];
+      const reserved = (rifa.reserved || []);
+
+      if(!reserved.length){
+        alert("Ninguém comprou essa rifa ainda.");
+        return;
+      }
+
+      const msg = prompt("Digite a mensagem que será enviada para TODOS:");
+      if(!msg) return;
+
+      // Lista única de telefones
+      const unique = {};
+      reserved.forEach(r => {
+        const phone = (r.phone || "").replace(/\D/g,"");
+        if(phone.length >= 10) unique[phone] = r.name || "Cliente";
+      });
+
+      const phones = Object.keys(unique);
+      alert(`Vai abrir ${phones.length} conversas do WhatsApp. Clique em enviar em cada uma ✅`);
+
+      // Abre uma por vez (pra não travar)
+      let idx = 0;
+      const timer = setInterval(()=>{
+        if(idx >= phones.length){
+          clearInterval(timer);
+          return;
+        }
+        const phone = phones[idx];
+        const name = unique[phone];
+
+        const text = encodeURIComponent(`Olá ${name}! ${msg}`);
+        window.open(`https://wa.me/55${phone.startsWith("55")?phone.slice(2):phone}?text=${text}`, "_blank");
+        idx++;
+      }, 1100);
+    }
+
+    function chamarComprador(phone, name){
+      const p = String(phone || "").replace(/\D/g,"");
+      if(!p){ alert("WhatsApp não encontrado."); return; }
+
+      const msg = encodeURIComponent(`Olá ${name || ""}! Tudo bem?`);
+      window.open(`https://wa.me/${p.startsWith("55")?p:"55"+p}?text=${msg}`, "_blank");
+    }
+
+    function chamarGanhador(phone, name, num, rifaTitle){
+      const p = String(phone || "").replace(/\D/g,"");
+      if(!p){ alert("WhatsApp do ganhador não encontrado."); return; }
+
+      const msg = encodeURIComponent(
+        `🏆 Parabéns ${name}! Você GANHOU a rifa: ${rifaTitle}\n` +
+        `Número vencedor: ${pad2(num)}\n\n` +
+        `Me chama aqui pra combinarmos a entrega ✅`
+      );
+      window.open(`https://wa.me/${p.startsWith("55")?p:"55"+p}?text=${msg}`, "_blank");
+    }
+
+    function removeWinner(i){
+      if(!confirm("Remover ganhador?")) return;
+      data.ganhadores.splice(i,1);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderWinners();
+    }
+
+    // ===== LISTA RIFAS =====
+    function renderList(){
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      if(!data.rifas.length){
+        list.innerHTML = `<p class="muted" style="margin-top:8px;">Nenhuma rifa criada ainda.</p>`;
+        return;
+      }
+
+      data.rifas.forEach((r,i)=>{
+        const div = document.createElement("div");
+        div.className = "rifa-card";
+        div.style.marginTop = "12px";
+
+        const img = r.imageUrl ? `
+          <div class="rifa-photo">
+            <img src="${r.imageUrl}" alt="Foto do prêmio" />
+          </div>
+        ` : "";
+
+        // compradores da rifa (lista)
+        const buyers = (r.reserved || []).slice().reverse().map(b=>{
+          const num = pad2(b.n);
+          return `
+            <div style="display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid rgba(255,255,255,0.06);">
+              <div>
+                <div style="font-weight:1000;">${b.name || "Sem nome"} • Nº ${num}</div>
+                <div class="rifa-sub">Whats: ${b.phone || "-"}</div>
+              </div>
+              <button class="btn" onclick="chamarComprador('${b.phone}','${(b.name||"").replace(/'/g,"")}')">Chamar</button>
+            </div>
+          `;
+        }).join("");
+
+        div.innerHTML = `
+          ${img}
+
+          <div class="rifa-head">
+            <div>
+              <h3 class="gold3d" style="font-size:18px;">${r.title}</h3>
+              <div class="rifa-sub">${r.subtitle || ""}</div>
+              <div class="rifa-sub">Preço: R$ ${r.price} • Números: ${r.totalNumbers}</div>
+              <div class="rifa-sub">Reservados: ${(r.reserved||[]).length}</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:230px;">
+              <button class="btn" onclick="sortearAuto(${i})">🏆 Sortear automático</button>
+              <button class="btn" onclick="sortearManual(${i})">✍️ Digitar número sorteado</button>
+              <button class="btn" onclick="msgTodos(${i})">📢 Msg WhatsApp (todos)</button>
+              <button class="btn" onclick="clearReserved(${i})">Liberar números</button>
+              <button class="btn" onclick="deleteRifa(${i})">Apagar rifa</button>
+            </div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <div class="rifa-sub" style="font-weight:1000;">Compradores / Reservas:</div>
+            ${buyers || `<p class="muted" style="margin-top:8px;">Nenhum número reservado ainda.</p>`}
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    // ===== GANHADORES =====
+    function renderWinners(){
+      const winners = document.getElementById("winners");
+      winners.innerHTML = "";
+
+      data.ganhadores = data.ganhadores || [];
+
+      if(!data.ganhadores.length){
+        winners.innerHTML = `<p class="muted" style="margin-top:8px;">Nenhum ganhador ainda.</p>`;
+        return;
+      }
+
+      data.ganhadores.forEach((w,i)=>{
+        const div = document.createElement("div");
+        div.className = "rifa-card";
+        div.style.marginTop = "12px";
+
+        const dt = new Date(w.date);
+        const dateStr = dt.toLocaleString("pt-BR");
+
+        div.innerHTML = `
+          <div class="rifa-head">
+            <div>
+              <h3 class="gold3d" style="font-size:18px;">🏆 ${w.name}</h3>
+              <div class="rifa-sub">Rifa: ${w.rifaTitle}</div>
+              <div class="rifa-sub">Número vencedor: <b>${pad2(w.number)}</b></div>
+              <div class="rifa-sub">Whats: <b>${w.phone || "-"}</b></div>
+              <div class="rifa-sub">Data: ${dateStr}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:220px;">
+              <button class="btn" onclick="chamarGanhador('${w.phone}','${(w.name||"").replace(/'/g,"")}',${w.number},'${(w.rifaTitle||"").replace(/'/g,"")}')">📲 Chamar ganhador</button>
+              <button class="btn" onclick="removeWinner(${i})">Remover</button>
+            </div>
+          </div>
+        `;
+        winners.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
