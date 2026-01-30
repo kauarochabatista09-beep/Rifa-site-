@@ -19,7 +19,7 @@
             <span class="brand-title gold3d">Painel ADM</span>
             <span class="blue-bolt blink">⚡</span>
           </div>
-          <div class="brand-sub">Crie rifas, edite PIX, sorteie e contate os compradores</div>
+          <div class="brand-sub">Crie rifas, edite PIX, sorteie e mande WhatsApp automático</div>
         </div>
       </div>
 
@@ -29,9 +29,9 @@
     <div class="marquee-wrap">
       <div class="marquee">
         <div class="marquee-track">
-          <span class="marquee-item">✨ ADMIN • FOTO DO PRÊMIO • SORTEIO MANUAL/AUTO • WHATSAPP EM MASSA • GANHADORES 🏆 ✨</span>
-          <span class="marquee-item">✨ ADMIN • FOTO DO PRÊMIO • SORTEIO MANUAL/AUTO • WHATSAPP EM MASSA • GANHADORES 🏆 ✨</span>
-          <span class="marquee-item">✨ ADMIN • FOTO DO PRÊMIO • SORTEIO MANUAL/AUTO • WHATSAPP EM MASSA • GANHADORES 🏆 ✨</span>
+          <span class="marquee-item">✨ ADMIN • FOTO DO PRÊMIO • SORTEIO MANUAL/AUTO • RETA FINAL • PENDENTE • ÚLTIMAS HORAS • GANHADORES 🏆 ✨</span>
+          <span class="marquee-item">✨ ADMIN • FOTO DO PRÊMIO • SORTEIO MANUAL/AUTO • RETA FINAL • PENDENTE • ÚLTIMAS HORAS • GANHADORES 🏆 ✨</span>
+          <span class="marquee-item">✨ ADMIN • FOTO DO PRÊMIO • SORTEIO MANUAL/AUTO • RETA FINAL • PENDENTE • ÚLTIMAS HORAS • GANHADORES 🏆 ✨</span>
         </div>
       </div>
     </div>
@@ -221,6 +221,42 @@
       alert("Números liberados ✅");
     }
 
+    // compradores únicos por Whats
+    function uniquePhonesFromReserved(reserved){
+      const unique = {};
+      reserved.forEach(r => {
+        const phone = (r.phone || "").replace(/\D/g,"");
+        if(phone.length >= 10) unique[phone] = r.name || "Cliente";
+      });
+      return unique;
+    }
+
+    function openWhatsToMany(uniquePhones, messageBuilder){
+      const phones = Object.keys(uniquePhones);
+      if(!phones.length){
+        alert("Nenhum WhatsApp válido encontrado.");
+        return;
+      }
+
+      alert(`Vai abrir ${phones.length} conversas do WhatsApp.\nVocê só clica em ENVIAR em cada uma ✅`);
+
+      let idx = 0;
+      const timer = setInterval(()=>{
+        if(idx >= phones.length){
+          clearInterval(timer);
+          return;
+        }
+
+        const phone = phones[idx];
+        const name = uniquePhones[phone];
+        const msg = messageBuilder(name);
+
+        const text = encodeURIComponent(msg);
+        window.open(`https://wa.me/${phone.startsWith("55")?phone:"55"+phone}?text=${text}`, "_blank");
+        idx++;
+      }, 1200);
+    }
+
     // ===== GANHADOR (SALVAR) =====
     function addWinner(rifa, win){
       const winner = {
@@ -255,7 +291,7 @@
       addWinner(rifa, win);
     }
 
-    // ===== SORTEIO MANUAL (DIGITAR NÚMERO) =====
+    // ===== SORTEIO MANUAL =====
     function sortearManual(i){
       const rifa = data.rifas[i];
       const reserved = (rifa.reserved || []);
@@ -283,7 +319,7 @@
       addWinner(rifa, win);
     }
 
-    // ===== MENSAGEM EM MASSA =====
+    // ===== MENSAGEM TODOS =====
     function msgTodos(i){
       const rifa = data.rifas[i];
       const reserved = (rifa.reserved || []);
@@ -296,30 +332,77 @@
       const msg = prompt("Digite a mensagem que será enviada para TODOS:");
       if(!msg) return;
 
-      // Lista única de telefones
-      const unique = {};
-      reserved.forEach(r => {
-        const phone = (r.phone || "").replace(/\D/g,"");
-        if(phone.length >= 10) unique[phone] = r.name || "Cliente";
-      });
+      const unique = uniquePhonesFromReserved(reserved);
 
-      const phones = Object.keys(unique);
-      alert(`Vai abrir ${phones.length} conversas do WhatsApp. Clique em enviar em cada uma ✅`);
+      openWhatsToMany(unique, (name)=> `Olá ${name}! ${msg}`);
+    }
 
-      // Abre uma por vez (pra não travar)
-      let idx = 0;
-      const timer = setInterval(()=>{
-        if(idx >= phones.length){
-          clearInterval(timer);
-          return;
-        }
-        const phone = phones[idx];
-        const name = unique[phone];
+    // ===== RETA FINAL =====
+    function msgRetaFinal(i){
+      const rifa = data.rifas[i];
+      const reserved = (rifa.reserved || []);
+      if(!reserved.length){
+        alert("Ainda não tem compradores nessa rifa.");
+        return;
+      }
 
-        const text = encodeURIComponent(`Olá ${name}! ${msg}`);
-        window.open(`https://wa.me/55${phone.startsWith("55")?phone.slice(2):phone}?text=${text}`, "_blank");
-        idx++;
-      }, 1100);
+      const total = rifa.totalNumbers || 100;
+      const vendidos = reserved.length;
+      const faltam = total - vendidos;
+
+      const unique = uniquePhonesFromReserved(reserved);
+
+      openWhatsToMany(unique, (name)=>(
+`Olá ${name}! 🚨 *RETA FINAL!* 🚨
+
+Rifa: *${rifa.title}*
+Faltam apenas *${faltam} números*!
+
+🔥 Garanta mais números agora pra aumentar suas chances!
+✅ Se quiser escolher mais números, me chama aqui.`
+      ));
+    }
+
+    // ===== PAGAMENTO PENDENTE =====
+    function msgPendente(i){
+      const rifa = data.rifas[i];
+      const reserved = (rifa.reserved || []);
+      if(!reserved.length){
+        alert("Ainda não tem compradores nessa rifa.");
+        return;
+      }
+
+      const unique = uniquePhonesFromReserved(reserved);
+
+      openWhatsToMany(unique, (name)=>(
+`Olá ${name}! 💸
+
+Estou conferindo aqui a rifa: *${rifa.title}*.
+Se você já fez o PIX, me manda o comprovante por favor ✅
+
+Se ainda não pagou, ainda dá tempo de confirmar seus números hoje 🔥`
+      ));
+    }
+
+    // ===== ÚLTIMAS HORAS =====
+    function msgUltimasHoras(i){
+      const rifa = data.rifas[i];
+      const reserved = (rifa.reserved || []);
+      if(!reserved.length){
+        alert("Ainda não tem compradores nessa rifa.");
+        return;
+      }
+
+      const unique = uniquePhonesFromReserved(reserved);
+
+      openWhatsToMany(unique, (name)=>(
+`Olá ${name}! ⏳🔥
+
+*ÚLTIMAS HORAS* da rifa: *${rifa.title}* ⚡
+Se quiser garantir mais números, me chama agora ✅
+
+Boa sorte 🍀`
+      ));
     }
 
     function chamarComprador(phone, name){
@@ -370,7 +453,6 @@
           </div>
         ` : "";
 
-        // compradores da rifa (lista)
         const buyers = (r.reserved || []).slice().reverse().map(b=>{
           const num = pad2(b.n);
           return `
@@ -395,10 +477,15 @@
               <div class="rifa-sub">Reservados: ${(r.reserved||[]).length}</div>
             </div>
 
-            <div style="display:flex;flex-direction:column;gap:8px;min-width:230px;">
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:240px;">
               <button class="btn" onclick="sortearAuto(${i})">🏆 Sortear automático</button>
               <button class="btn" onclick="sortearManual(${i})">✍️ Digitar número sorteado</button>
+
               <button class="btn" onclick="msgTodos(${i})">📢 Msg WhatsApp (todos)</button>
+              <button class="btn" onclick="msgRetaFinal(${i})">🚨 Reta final (WhatsApp)</button>
+              <button class="btn" onclick="msgPendente(${i})">💸 Pagamento pendente</button>
+              <button class="btn" onclick="msgUltimasHoras(${i})">⏳ Últimas horas</button>
+
               <button class="btn" onclick="clearReserved(${i})">Liberar números</button>
               <button class="btn" onclick="deleteRifa(${i})">Apagar rifa</button>
             </div>
