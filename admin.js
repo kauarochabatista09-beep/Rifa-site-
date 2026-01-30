@@ -18,7 +18,6 @@ function saveData(data){
 function money(v){
   return (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
-function pad2(n){ return String(n).padStart(2,"0"); }
 
 let data = loadData();
 
@@ -70,6 +69,25 @@ $("btnCreateRifa").onclick = () => {
   renderAdmin();
 };
 
+function uniquePhonesFromOrders(){
+  const set = new Set();
+  data.orders.forEach(o=>{
+    if(o.buyerPhone) set.add(o.buyerPhone);
+  });
+  return [...set];
+}
+
+function getFewLeftRifas(limit){
+  const result = [];
+  data.rifas.forEach(r=>{
+    const freeCount = r.numbers.filter(n=>n.status==="free").length;
+    if(freeCount > 0 && freeCount <= limit){
+      result.push({ rifa:r, freeCount });
+    }
+  });
+  return result;
+}
+
 function renderAdmin(){
   // rifas
   const adminRifas = $("adminRifas");
@@ -111,21 +129,32 @@ function renderAdmin(){
 
   if(orders.length===0){
     box.innerHTML = "Sem reservas ainda.";
-    return;
+  }else{
+    box.innerHTML = orders.map(o=>`
+      <div style="padding:10px;border-bottom:1px solid rgba(255,255,255,.08)">
+        <b>${o.rifaTitle}</b><br>
+        Comprador: ${o.buyerName} (${o.buyerPhone})<br>
+        Nº: ${o.numbers.join(", ")}<br>
+        Total: ${money(o.total)}<br>
+        Status: <b style="color:${o.status==='paid'?'#2fda8f':'#ffb020'}">${o.status==='paid'?'PAGO':'PENDENTE'}</b><br><br>
+
+        <button class="btn primary" onclick="markPaid('${o.id}')">Confirmar Pago</button>
+        <button class="btn" style="margin-top:8px" onclick="cancelOrder('${o.id}')">Cancelar</button>
+      </div>
+    `).join("");
   }
 
-  box.innerHTML = orders.map(o=>`
-    <div style="padding:10px;border-bottom:1px solid rgba(255,255,255,.08)">
-      <b>${o.rifaTitle}</b><br>
-      Comprador: ${o.buyerName} (${o.buyerPhone})<br>
-      Nº: ${o.numbers.join(", ")}<br>
-      Total: ${money(o.total)}<br>
-      Status: <b style="color:${o.status==='paid'?'#2fda8f':'#ffb020'}">${o.status==='paid'?'PAGO':'PENDENTE'}</b><br><br>
-
-      <button class="btn primary" onclick="markPaid('${o.id}')">Confirmar Pago</button>
-      <button class="btn" style="margin-top:8px" onclick="cancelOrder('${o.id}')">Cancelar</button>
-    </div>
-  `).join("");
+  // aviso whatsapp info
+  const warnMsg = $("warnMsg");
+  if(warnMsg && $("fewLeftLimit")){
+    const limit = parseInt($("fewLeftLimit").value || "10", 10);
+    const few = getFewLeftRifas(limit);
+    if(few.length===0){
+      warnMsg.innerHTML = `✅ Nenhuma rifa com poucos números no momento (limite: ${limit}).`;
+    }else{
+      warnMsg.innerHTML = `⚠️ Existem ${few.length} rifa(s) com poucos números (limite: ${limit}).`;
+    }
+  }
 }
 
 window.markPaid = (orderId) => {
@@ -135,7 +164,6 @@ window.markPaid = (orderId) => {
   const rifa = data.rifas.find(x=>x.id===order.rifaId);
   if(!rifa) return;
 
-  // marcar números como vendidos
   order.numbers.forEach(numTxt=>{
     const n = parseInt(numTxt,10);
     const obj = rifa.numbers.find(z=>z.num===n);
@@ -155,7 +183,6 @@ window.cancelOrder = (orderId) => {
 
   const rifa = data.rifas.find(x=>x.id===order.rifaId);
 
-  // liberar números
   if(rifa){
     order.numbers.forEach(numTxt=>{
       const n = parseInt(numTxt,10);
@@ -171,5 +198,57 @@ window.cancelOrder = (orderId) => {
   saveData(data);
   renderAdmin();
 };
+
+// =====================
+// BOTÃO: AVISAR TODOS NO WHATSAPP
+// =====================
+const btnWarn = $("btnWarnWhatsapp");
+if(btnWarn){
+  btnWarn.onclick = () => {
+    const limit = parseInt(($("fewLeftLimit")?.value || "10").trim(), 10);
+
+    const few = getFewLeftRifas(limit);
+    if(few.length === 0){
+      alert("Nenhuma rifa com poucos números agora.");
+      return;
+    }
+
+    // Pegar compradores (somente quem já reservou ou pagou)
+    const phones = uniquePhonesFromOrders();
+    if(phones.length === 0){
+      alert("Não há compradores para avisar ainda.");
+      return;
+    }
+
+    const rifasTxt = few.map(x => `• ${x.rifa.title} (restam ${x.freeCount})`).join("\n");
+
+    const msg =
+`🔥 ÚLTIMOS NÚMEROS DISPONÍVEIS!
+🍀 Corre que tá acabando!
+
+Rifas com poucos números:
+${rifasTxt}
+
+Garanta agora:
+https://rifa-site-three.vercel.app/`;
+
+    // Abre WhatsApp conversa por conversa
+    alert(`Vai abrir o WhatsApp para ${phones.length} comprador(es).`);
+
+    let i = 0;
+    function openNext(){
+      if(i >= phones.length) return;
+
+      const phone = phones[i].replace(/\D/g,"");
+      const url = `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank");
+
+      i++;
+      setTimeout(openNext, 900); // tempo entre abas
+    }
+
+    openNext();
+  };
+}
 
 renderAdmin();
