@@ -23,7 +23,7 @@ function money(v){
 function loadResults(){
   const raw = localStorage.getItem(RESULTS_KEY);
   if(raw) return JSON.parse(raw);
-  const init = { results: [] }; // [{rifaId, rifaTitle, luckyNumber, winnerName, winnerPhone, publishedAt}]
+  const init = { results: [] };
   localStorage.setItem(RESULTS_KEY, JSON.stringify(init));
   return init;
 }
@@ -127,15 +127,16 @@ function showCurrentResult(){
   const box = $("resultMsg");
   if(!box) return;
 
-  const select = $("resultRifaSelect");
-  const rifaId = select?.value;
+  const rifaId = $("resultRifaSelect")?.value;
 
   if(!rifaId){
     box.innerHTML = "Escolha uma rifa para ver o resultado.";
     return;
   }
 
+  resultsData = loadResults();
   const found = resultsData.results.find(x=>x.rifaId===rifaId);
+
   if(!found){
     box.innerHTML = "Nenhum resultado publicado para essa rifa.";
     return;
@@ -152,18 +153,20 @@ function showCurrentResult(){
 }
 
 function findWinnerByNumber(rifaId, luckyNumber){
-  // pega pedido pago primeiro
+  const luckyTxt = String(luckyNumber).padStart(2,"0");
+
+  // primeiro pago
   const paid = data.orders.find(o =>
     o.rifaId === rifaId &&
     o.status === "paid" &&
-    o.numbers.includes(String(luckyNumber).padStart(2,"0"))
+    o.numbers.includes(luckyTxt)
   );
   if(paid) return { name: paid.buyerName, phone: paid.buyerPhone, status: "paid" };
 
-  // se não tiver pago, tenta reservado
+  // se não tiver pago, pega reservado
   const reserved = data.orders.find(o =>
     o.rifaId === rifaId &&
-    o.numbers.includes(String(luckyNumber).padStart(2,"0"))
+    o.numbers.includes(luckyTxt)
   );
   if(reserved) return { name: reserved.buyerName, phone: reserved.buyerPhone, status: reserved.status };
 
@@ -171,92 +174,83 @@ function findWinnerByNumber(rifaId, luckyNumber){
 }
 
 // publicar resultado
-const btnPublish = $("btnPublishResult");
-if(btnPublish){
-  btnPublish.onclick = () => {
-    const rifaId = $("resultRifaSelect")?.value;
-    const luckyNumber = parseInt(($("resultNumber")?.value || "").trim(), 10);
+$("btnPublishResult").onclick = () => {
+  const rifaId = $("resultRifaSelect")?.value;
+  const luckyNumber = parseInt(($("resultNumber")?.value || "").trim(), 10);
 
-    if(!rifaId){
-      alert("Escolha uma rifa.");
-      return;
-    }
-    if(!luckyNumber || luckyNumber < 1){
-      alert("Digite o número sorteado.");
-      return;
-    }
+  if(!rifaId){
+    alert("Escolha uma rifa.");
+    return;
+  }
+  if(!luckyNumber || luckyNumber < 1){
+    alert("Digite o número sorteado.");
+    return;
+  }
 
-    const rifa = data.rifas.find(x=>x.id===rifaId);
-    if(!rifa){
-      alert("Rifa não encontrada.");
-      return;
-    }
+  const rifa = data.rifas.find(x=>x.id===rifaId);
+  if(!rifa){
+    alert("Rifa não encontrada.");
+    return;
+  }
 
-    if(luckyNumber > rifa.numbers.length){
-      alert("Esse número não existe nessa rifa.");
-      return;
-    }
+  if(luckyNumber > rifa.numbers.length){
+    alert("Esse número não existe nessa rifa.");
+    return;
+  }
 
-    const winner = findWinnerByNumber(rifaId, luckyNumber);
+  const winner = findWinnerByNumber(rifaId, luckyNumber);
 
-    // salvar resultado (um por rifa)
-    resultsData.results = resultsData.results.filter(x=>x.rifaId!==rifaId);
+  resultsData = loadResults();
+  resultsData.results = resultsData.results.filter(x=>x.rifaId!==rifaId);
 
-    resultsData.results.push({
-      rifaId,
-      rifaTitle: rifa.title,
-      luckyNumber,
-      winnerName: winner?.name || "",
-      winnerPhone: winner?.phone || "",
-      winnerStatus: winner?.status || "",
-      publishedAt: new Date().toISOString()
-    });
+  resultsData.results.push({
+    rifaId,
+    rifaTitle: rifa.title,
+    luckyNumber,
+    winnerName: winner?.name || "",
+    winnerPhone: winner?.phone || "",
+    winnerStatus: winner?.status || "",
+    publishedAt: new Date().toISOString()
+  });
 
-    saveResults(resultsData);
-    showCurrentResult();
-
-    alert("✅ Resultado publicado!");
-  };
-}
+  saveResults(resultsData);
+  showCurrentResult();
+  alert("✅ Resultado publicado!");
+};
 
 // remover resultado
-const btnClear = $("btnClearResult");
-if(btnClear){
-  btnClear.onclick = () => {
-    const rifaId = $("resultRifaSelect")?.value;
-    if(!rifaId) return;
+$("btnClearResult").onclick = () => {
+  const rifaId = $("resultRifaSelect")?.value;
+  if(!rifaId) return;
 
-    if(!confirm("Remover resultado dessa rifa?")){
-      return;
-    }
+  if(!confirm("Remover resultado dessa rifa?")) return;
 
-    resultsData.results = resultsData.results.filter(x=>x.rifaId!==rifaId);
-    saveResults(resultsData);
-    showCurrentResult();
-  };
-}
+  resultsData = loadResults();
+  resultsData.results = resultsData.results.filter(x=>x.rifaId!==rifaId);
+  saveResults(resultsData);
 
-// botão whatsapp
-const btnWarn = $("btnWarnWhatsapp");
-if(btnWarn){
-  btnWarn.onclick = () => {
-    const limit = parseInt(($("fewLeftLimit")?.value || "10").trim(), 10);
+  showCurrentResult();
+};
 
-    const few = getFewLeftRifas(limit);
-    if(few.length === 0){
-      alert("Nenhuma rifa com poucos números agora.");
-      return;
-    }
+// whatsapp
+$("btnWarnWhatsapp").onclick = () => {
+  const limit = parseInt(($("fewLeftLimit")?.value || "10").trim(), 10);
 
-    const phones = uniquePhonesFromOrders();
-    if(phones.length === 0){
-      alert("Não há compradores para avisar ainda.");
-      return;
-    }
+  const few = getFewLeftRifas(limit);
+  if(few.length === 0){
+    alert("Nenhuma rifa com poucos números agora.");
+    return;
+  }
 
-    const rifasTxt = few.map(x => `• ${x.rifa.title} (restam ${x.freeCount})`).join("\n");
+  const phones = uniquePhonesFromOrders();
+  if(phones.length === 0){
+    alert("Não há compradores para avisar ainda.");
+    return;
+  }
 
-    const msg =
+  const rifasTxt = few.map(x => `• ${x.rifa.title} (restam ${x.freeCount})`).join("\n");
+
+  const msg =
 `🔥 ÚLTIMOS NÚMEROS DISPONÍVEIS!
 🍀 Corre que tá acabando!
 
@@ -266,28 +260,25 @@ ${rifasTxt}
 Garanta agora:
 https://rifa-site-three.vercel.app/`;
 
-    alert(`Vai abrir o WhatsApp para ${phones.length} comprador(es).`);
+  alert(`Vai abrir o WhatsApp para ${phones.length} comprador(es).`);
 
-    let i = 0;
-    function openNext(){
-      if(i >= phones.length) return;
+  let i = 0;
+  function openNext(){
+    if(i >= phones.length) return;
 
-      const phone = phones[i].replace(/\D/g,"");
-      const url = `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`;
-      window.open(url, "_blank");
+    const phone = phones[i].replace(/\D/g,"");
+    const url = `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
 
-      i++;
-      setTimeout(openNext, 900);
-    }
-
-    openNext();
-  };
-}
+    i++;
+    setTimeout(openNext, 900);
+  }
+  openNext();
+};
 
 function renderAdmin(){
   renderRifaSelect();
 
-  // rifas
   const adminRifas = $("adminRifas");
   adminRifas.innerHTML = "";
 
@@ -321,7 +312,6 @@ function renderAdmin(){
     adminRifas.appendChild(el);
   });
 
-  // pedidos
   const box = $("adminOrders");
   const orders = [...data.orders].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
 
@@ -342,7 +332,6 @@ function renderAdmin(){
     `).join("");
   }
 
-  // aviso whatsapp info
   const warnMsg = $("warnMsg");
   if(warnMsg && $("fewLeftLimit")){
     const limit = parseInt($("fewLeftLimit").value || "10", 10);
@@ -352,17 +341,15 @@ function renderAdmin(){
       : `⚠️ Existem ${few.length} rifa(s) com poucos números (limite: ${limit}).`;
   }
 
-  // mostrar resultado atual
   showCurrentResult();
 
-  // atualizar resultado ao trocar rifa
   const select = $("resultRifaSelect");
   if(select){
     select.onchange = () => showCurrentResult();
   }
 }
 
-// Confirmar pago / Cancelar
+// confirmar pago / cancelar
 window.markPaid = (orderId) => {
   const order = data.orders.find(x=>x.id===orderId);
   if(!order) return;
@@ -386,7 +373,6 @@ window.cancelOrder = (orderId) => {
   if(!order) return;
 
   const rifa = data.rifas.find(x=>x.id===order.rifaId);
-
   if(rifa){
     order.numbers.forEach(numTxt=>{
       const n = parseInt(numTxt,10);
