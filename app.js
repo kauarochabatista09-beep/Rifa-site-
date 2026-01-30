@@ -384,3 +384,8 @@ $("btnLookup").onclick = () => {
 // init
 renderResultsBox();
 renderRifas();
+// força esconder Admin na home (garantido)
+(function forceHideAdmin(){
+  const adminBtn = document.getElementById("adminHiddenLink") || document.querySelector('a[href="./admin.html"], a[href="admin.html"]');
+  if(adminBtn) adminBtn.classList.add("hidden");
+})();
