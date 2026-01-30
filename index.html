@@ -14,6 +14,7 @@
     <div class="topbar-inner">
       <div class="brand">
         <div class="brand-badge">ADMIT ONE</div>
+
         <div class="brand-text">
           <div class="brand-line">
             <span class="brand-title gold3d">Rifas Premium</span>
@@ -23,7 +24,12 @@
         </div>
       </div>
 
-      <a class="btn-admin" href="admin.html">Painel ADM</a>
+      <!-- BOTÃO MENU 3 TRAÇOS DOURADO -->
+      <button class="menu-btn" onclick="openMenu()" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
 
     <!-- LETREIRO INFINITO -->
@@ -44,9 +50,30 @@
     </div>
   </header>
 
+  <!-- MENU LATERAL -->
+  <div class="side-menu" id="sideMenu">
+    <div class="menu-overlay" onclick="closeMenu()"></div>
+
+    <div class="menu-panel">
+      <div class="menu-header">
+        <div class="menu-title gold3d">Menu</div>
+        <button class="menu-close" onclick="closeMenu()">×</button>
+      </div>
+
+      <a class="menu-item" href="#rifasAtivas" onclick="closeMenu()">🎟️ Rifas ativas</a>
+      <button class="menu-item" onclick="goGanhadores()">🏆 Ganhadores</button>
+      <button class="menu-item" onclick="goComoFunciona()">ℹ️ Como funciona</button>
+      <button class="menu-item" onclick="contactWhats()">📲 Falar no WhatsApp</button>
+
+      <div class="menu-footer">
+        <small>© <span id="yearMenu"></span> Rifas Premium</small>
+      </div>
+    </div>
+  </div>
+
   <!-- CONTEÚDO -->
   <main class="container">
-    <section class="section-title">
+    <section class="section-title" id="rifasAtivas">
       <h2>🔥 Rifas ativas</h2>
       <p>Escolha uma rifa e reserve seus números</p>
     </section>
@@ -106,14 +133,13 @@
 
     const defaultData = {
       pixKey: "b3764325-afe3-40c4-a0fb-a532b88c0717",
-      whatsapp: "5511989448748", // troque se quiser
-      rifas: []
+      whatsapp: "5511989448748",
+      rifas: [],
+      ganhadores: []
     };
 
-    // ===== Estado =====
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultData;
 
-    // Se não existe, salva default
     if (!localStorage.getItem(STORAGE_KEY)) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
       data = defaultData;
@@ -122,9 +148,35 @@
     // ===== Util =====
     const money = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-    document.getElementById("year").innerText = new Date().getFullYear();
+    const year = new Date().getFullYear();
+    document.getElementById("year").innerText = year;
+    document.getElementById("yearMenu").innerText = year;
 
-    // ===== Render =====
+    // ===== MENU =====
+    function openMenu(){
+      document.getElementById("sideMenu").classList.add("open");
+    }
+    function closeMenu(){
+      document.getElementById("sideMenu").classList.remove("open");
+    }
+
+    function goGanhadores(){
+      closeMenu();
+      alert("Em breve: página completa de ganhadores 🏆 (posso colocar pra você)");
+    }
+
+    function goComoFunciona(){
+      closeMenu();
+      alert("Como funciona:\n1) Escolha seus números\n2) Pague no PIX\n3) Envie comprovante no WhatsApp\n4) Sorteio ao vivo ✅");
+    }
+
+    function contactWhats(){
+      closeMenu();
+      const msg = encodeURIComponent("Olá! Quero participar das rifas Premium ⚡");
+      window.open(`https://wa.me/${data.whatsapp}?text=${msg}`, "_blank");
+    }
+
+    // ===== Render Rifas =====
     function renderRifas() {
       const area = document.getElementById("rifasArea");
       area.innerHTML = "";
@@ -142,8 +194,7 @@
       data.rifas.forEach((rifa, idx) => {
         const totalNumbers = rifa.totalNumbers || 100;
         const price = rifa.price || 10;
-        const reserved = rifa.reserved || []; // [{n, name, phone}]
-
+        const reserved = rifa.reserved || [];
         const reservedSet = new Set(reserved.map(r => r.n));
 
         const card = document.createElement("div");
@@ -172,7 +223,6 @@
 
         area.appendChild(card);
 
-        // números
         const numbersDiv = card.querySelector(`#numbers_${idx}`);
         for (let n = 1; n <= totalNumbers; n++) {
           const btn = document.createElement("button");
@@ -212,11 +262,10 @@
       currentRifaIndex = idx;
       const rifa = data.rifas[idx];
 
-      selectedNumbers = []; // reset
+      selectedNumbers = [];
       document.getElementById("buyerName").value = "";
       document.getElementById("buyerPhone").value = "";
 
-      // limpar selections nos botões da rifa
       const nums = document.querySelectorAll(`#numbers_${idx} .num`);
       nums.forEach(el => el.classList.remove("selected"));
 
@@ -279,7 +328,6 @@
       const rifa = data.rifas[currentRifaIndex];
       rifa.reserved = rifa.reserved || [];
 
-      // Reservar números no localStorage
       selectedNumbers.forEach(n => {
         rifa.reserved.push({ n, name, phone, date: new Date().toISOString() });
       });
@@ -303,7 +351,6 @@
       renderRifas();
     }
 
-    // Atualiza chips/total quando clicar em reservar
     document.addEventListener("click", () => {
       if (document.getElementById("modal").classList.contains("open")) {
         updateSelectedChips();
