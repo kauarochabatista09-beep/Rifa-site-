@@ -6,15 +6,10 @@ const RESULTS_KEY = "rifa_site_results_v1";
 function loadData(){
   const raw = localStorage.getItem(LS_KEY);
   if(raw) return JSON.parse(raw);
-
-  const init = {
-    rifas: [],
-    orders: []
-  };
+  const init = { rifas: [], orders: [] };
   localStorage.setItem(LS_KEY, JSON.stringify(init));
   return init;
 }
-
 function saveData(data){
   localStorage.setItem(LS_KEY, JSON.stringify(data));
 }
@@ -22,7 +17,6 @@ function saveData(data){
 function loadResults(){
   const raw = localStorage.getItem(RESULTS_KEY);
   if(raw) return JSON.parse(raw);
-
   const init = { results: [] };
   localStorage.setItem(RESULTS_KEY, JSON.stringify(init));
   return init;
@@ -31,12 +25,9 @@ function loadResults(){
 function money(v){
   return (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
-
 function pad2(n){
   return String(n).padStart(2,"0");
 }
-
-// ✅ mascarar telefone no site público
 function maskPhone(phone){
   if(!phone) return "-";
   const digits = String(phone).replace(/\D/g,"");
@@ -49,25 +40,17 @@ let data = loadData();
 let resultsData = loadResults();
 let currentRifaId = null;
 
-function openSidebar(){
-  $("sidebar").classList.add("open");
-}
-function closeSidebar(){
-  $("sidebar").classList.remove("open");
-}
-
+// ========== Sidebar ==========
+function openSidebar(){ $("sidebar").classList.add("open"); }
+function closeSidebar(){ $("sidebar").classList.remove("open"); }
 $("menuBtn").onclick = openSidebar;
 $("closeBtn").onclick = closeSidebar;
-
 $("year").innerText = new Date().getFullYear();
 
-// =====================
-// ADMIN ESCONDIDO (CELULAR + PC)
-// =====================
+// ========== Admin escondido ==========
 (function secretAdminAccess(){
   const adminBtn = document.getElementById("adminHiddenLink");
   const logo = document.getElementById("secretLogo");
-
   if(!adminBtn || !logo) return;
 
   let taps = 0;
@@ -76,21 +59,14 @@ $("year").innerText = new Date().getFullYear();
   function showAdmin(){
     adminBtn.classList.remove("hidden");
     adminBtn.innerText = "Admin 🔒";
-
-    setTimeout(() => {
-      adminBtn.classList.add("hidden");
-    }, 10000); // some após 10s
+    setTimeout(() => adminBtn.classList.add("hidden"), 10000);
   }
 
-  // celular: tocar 5x no logo
+  // Celular/Tablet: 5 toques no logo
   logo.addEventListener("click", () => {
     taps++;
     clearTimeout(tapTimer);
-
-    tapTimer = setTimeout(() => {
-      taps = 0;
-    }, 1200);
-
+    tapTimer = setTimeout(()=>taps=0, 1200);
     if(taps >= 5){
       taps = 0;
       showAdmin();
@@ -99,16 +75,14 @@ $("year").innerText = new Date().getFullYear();
 
   // PC: Ctrl + Shift + A
   document.addEventListener("keydown", (e) => {
-    const key = (e.key || "").toLowerCase();
-    if(e.ctrlKey && e.shiftKey && key === "a"){
+    const k = (e.key || "").toLowerCase();
+    if(e.ctrlKey && e.shiftKey && k === "a"){
       showAdmin();
     }
   });
 })();
 
-// =====================
-// CONFETE
-// =====================
+// ========== Confete ==========
 function fireConfetti(durationMs = 2500){
   const end = Date.now() + durationMs;
   const colors = ["#f5d76e", "#caa43a", "#ffffff", "#ffb020"];
@@ -135,20 +109,16 @@ function fireConfetti(durationMs = 2500){
     piece.style.transform = `rotate(${Math.random()*360}deg)`;
 
     const fall = Math.random() * 2 + 2.5;
-    piece.animate([
-      { transform: `translateY(0) rotate(0deg)` },
-      { transform: `translateY(110vh) rotate(${Math.random()*720}deg)` }
-    ], {
-      duration: fall * 1000,
-      easing: "linear",
-      fill: "forwards"
-    });
+    piece.animate(
+      [{ transform:`translateY(0) rotate(0deg)` },{ transform:`translateY(110vh) rotate(${Math.random()*720}deg)` }],
+      { duration: fall*1000, easing:"linear", fill:"forwards" }
+    );
 
     container.appendChild(piece);
-    setTimeout(()=> piece.remove(), fall*1000 + 200);
+    setTimeout(()=>piece.remove(), fall*1000 + 200);
   }
 
-  const interval = setInterval(() => {
+  const interval = setInterval(()=>{
     for(let i=0;i<14;i++) createPiece();
     if(Date.now() > end){
       clearInterval(interval);
@@ -157,30 +127,13 @@ function fireConfetti(durationMs = 2500){
   }, 160);
 }
 
-// =====================
-// NÚMEROS ALEATÓRIOS
-// =====================
-function getRandomFreeNumbers(rifa, qty){
-  const free = rifa.numbers.filter(n => n.status === "free").map(n => n.num);
-  if(qty > free.length) return null;
-
-  for(let i=free.length-1;i>0;i--){
-    const j = Math.floor(Math.random() * (i+1));
-    [free[i], free[j]] = [free[j], free[i]];
-  }
-  return free.slice(0, qty);
-}
-
-// =====================
-// RESULTADOS NO SITE (LISTA)
-// =====================
+// ========== Resultados ==========
 function renderResultsBox(){
   const box = $("resultBox");
   const content = $("resultContent");
   if(!box || !content) return;
 
   resultsData = loadResults();
-
   if(!resultsData.results || resultsData.results.length === 0){
     box.classList.add("hidden");
     return;
@@ -188,8 +141,7 @@ function renderResultsBox(){
 
   box.classList.remove("hidden");
 
-  const list = [...resultsData.results].sort((a,b)=> new Date(b.publishedAt) - new Date(a.publishedAt));
-
+  const list = [...resultsData.results].sort((a,b)=>new Date(b.publishedAt)-new Date(a.publishedAt));
   content.innerHTML = list.map(r => `
     <div style="padding:10px;border-bottom:1px solid rgba(255,255,255,.08)">
       <b>${r.rifaTitle}</b><br>
@@ -203,9 +155,19 @@ function renderResultsBox(){
   `).join("");
 }
 
-// =====================
-// RENDER RIFAS (com barra %)
-// =====================
+// ========== Números aleatórios ==========
+function getRandomFreeNumbers(rifa, qty){
+  const free = rifa.numbers.filter(n => n.status === "free").map(n => n.num);
+  if(qty > free.length) return null;
+
+  for(let i=free.length-1;i>0;i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [free[i], free[j]] = [free[j], free[i]];
+  }
+  return free.slice(0, qty);
+}
+
+// ========== Render Rifas ==========
 function renderRifas(){
   const grid = $("rifasGrid");
   grid.innerHTML = "";
@@ -250,19 +212,15 @@ function renderRifas(){
 
       <button class="btn primary">Comprar números</button>
     `;
-
     el.querySelector("button").onclick = () => openModal(r.id);
     grid.appendChild(el);
   });
 }
 
-// =====================
-// MODAL
-// =====================
+// ========== Modal ==========
 function openModal(rifaId){
   const rifa = data.rifas.find(x => x.id === rifaId);
   if(!rifa) return;
-
   currentRifaId = rifaId;
 
   $("modalTitle").innerText = rifa.title;
@@ -281,7 +239,6 @@ function openModal(rifaId){
 
   renderNumbers(rifa);
 
-  // botão aleatório
   if($("btnRandom")){
     $("btnRandom").onclick = () => {
       const qty = parseInt(($("randomQty")?.value || "").trim(), 10);
@@ -303,19 +260,11 @@ function openModal(rifaId){
 
   $("modal").classList.add("show");
 }
-
-function closeModal(){
-  $("modal").classList.remove("show");
-}
-
+function closeModal(){ $("modal").classList.remove("show"); }
 $("modalClose").onclick = closeModal;
-$("modal").addEventListener("click",(e)=>{
-  if(e.target.id === "modal") closeModal();
-});
+$("modal").addEventListener("click",(e)=>{ if(e.target.id === "modal") closeModal(); });
 
-// =====================
-// NÚMEROS
-// =====================
+// ========== Números ==========
 function renderNumbers(rifa){
   const grid = $("numbersGrid");
   grid.innerHTML = "";
@@ -346,9 +295,7 @@ function renderNumbers(rifa){
   });
 }
 
-// =====================
-// FINALIZAR COMPRA
-// =====================
+// ========== Finalizar compra ==========
 $("btnReserve").onclick = () => {
   const name = $("buyerName").value.trim();
   const phone = $("buyerPhone").value.trim();
@@ -373,14 +320,12 @@ $("btnReserve").onclick = () => {
     }
   }
 
-  // reservar
   chosenInts.forEach(n=>{
     const numObj = rifa.numbers.find(z => z.num === n);
     numObj.status = "reserved";
     numObj.buyer = {name, phone};
   });
 
-  // pedido
   const order = {
     id: "ord_" + Date.now(),
     rifaId: rifa.id,
@@ -403,14 +348,11 @@ $("btnReserve").onclick = () => {
 Envie o comprovante para o admin confirmar.`;
 
   fireConfetti(2500);
-
   renderNumbers(rifa);
   renderRifas();
 };
 
-// =====================
-// MINHAS COMPRAS
-// =====================
+// ========== Minhas compras ==========
 $("btnLookup").onclick = () => {
   const phone = $("lookupPhone").value.trim();
   if(!phone){
