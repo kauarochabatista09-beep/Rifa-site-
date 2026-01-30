@@ -128,7 +128,6 @@
   </div>
 
   <script>
-    // ===== CONFIG PADRÃO =====
     const STORAGE_KEY = "rifas_premium_data_v1";
 
     const defaultData = {
@@ -145,29 +144,23 @@
       data = defaultData;
     }
 
-    // ===== Util =====
     const money = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
     const year = new Date().getFullYear();
     document.getElementById("year").innerText = year;
     document.getElementById("yearMenu").innerText = year;
 
-    // ===== MENU =====
-    function openMenu(){
-      document.getElementById("sideMenu").classList.add("open");
-    }
-    function closeMenu(){
-      document.getElementById("sideMenu").classList.remove("open");
-    }
+    function openMenu(){ document.getElementById("sideMenu").classList.add("open"); }
+    function closeMenu(){ document.getElementById("sideMenu").classList.remove("open"); }
 
     function goGanhadores(){
       closeMenu();
-      alert("Em breve: página completa de ganhadores 🏆 (posso colocar pra você)");
+      window.location.href = "ganhadores.html";
     }
 
     function goComoFunciona(){
       closeMenu();
-      alert("Como funciona:\n1) Escolha seus números\n2) Pague no PIX\n3) Envie comprovante no WhatsApp\n4) Sorteio ao vivo ✅");
+      alert("Como funciona:\n\n1) Escolha seus números\n2) Pague no PIX\n3) Envie comprovante no WhatsApp\n4) Sorteio ao vivo ✅");
     }
 
     function contactWhats(){
@@ -176,7 +169,6 @@
       window.open(`https://wa.me/${data.whatsapp}?text=${msg}`, "_blank");
     }
 
-    // ===== Render Rifas =====
     function renderRifas() {
       const area = document.getElementById("rifasArea");
       area.innerHTML = "";
@@ -197,10 +189,25 @@
         const reserved = rifa.reserved || [];
         const reservedSet = new Set(reserved.map(r => r.n));
 
+        // ===== BARRA DE PROGRESSO =====
+        const vendidos = reserved.length;
+        const total = totalNumbers;
+        const pct = Math.min(100, Math.round((vendidos / total) * 100));
+        const faltam = total - vendidos;
+        const urgente = pct >= 80 ? `<span class="badge-hot">🔥 QUASE ESGOTADO</span>` : "";
+
+        const img = rifa.imageUrl ? `
+          <div class="rifa-photo">
+            <img src="${rifa.imageUrl}" alt="Foto do prêmio" />
+          </div>
+        ` : "";
+
         const card = document.createElement("div");
         card.className = "rifa-card";
 
         card.innerHTML = `
+          ${img}
+
           <div class="rifa-head">
             <div>
               <h3 class="gold3d">${rifa.title}</h3>
@@ -210,6 +217,18 @@
           </div>
 
           <div class="numbers" id="numbers_${idx}"></div>
+
+          <!-- BARRA DE PROGRESSO -->
+          <div class="progress-wrap">
+            <div class="progress-top">
+              <div class="left">Progresso da rifa ${urgente}</div>
+              <div class="right">${pct}% vendido • faltam ${faltam}</div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${pct}%"></div>
+              <div class="progress-glow"></div>
+            </div>
+          </div>
 
           <div class="rifa-bottom">
             <div class="rifa-stats">
@@ -241,7 +260,6 @@
       });
     }
 
-    // ===== Seleção =====
     let currentRifaIndex = null;
     let selectedNumbers = [];
 
@@ -257,7 +275,6 @@
       }
     }
 
-    // ===== Modal =====
     function openModal(idx) {
       currentRifaIndex = idx;
       const rifa = data.rifas[idx];
@@ -278,9 +295,7 @@
       document.getElementById("modal").classList.add("open");
     }
 
-    function closeModal() {
-      document.getElementById("modal").classList.remove("open");
-    }
+    function closeModal() { document.getElementById("modal").classList.remove("open"); }
 
     function updateSelectedChips() {
       const chips = document.getElementById("selectedChips");
@@ -291,9 +306,7 @@
         c.innerText = n.toString().padStart(2, "0");
         chips.appendChild(c);
       });
-      if (!selectedNumbers.length) {
-        chips.innerHTML = `<span class="muted">Nenhum número selecionado</span>`;
-      }
+      if (!selectedNumbers.length) chips.innerHTML = `<span class="muted">Nenhum número selecionado</span>`;
     }
 
     function updateTotal() {
@@ -308,7 +321,6 @@
       alert("PIX copiado ✅");
     }
 
-    // ===== Whats + Reservar =====
     function sendWhats() {
       if (currentRifaIndex === null) return;
 
@@ -361,4 +373,4 @@
     renderRifas();
   </script>
 </body>
-</html
+</html>
