@@ -2,95 +2,316 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rifas Premium</title>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+
+  <!-- NAV / TOPO -->
   <header class="topbar">
-    <button class="menuBtn" id="menuBtn">☰</button>
-    <div class="brand">
-      <span class="logo">🎟️</span>
-      <div>
-        <h1>Rifas Premium</h1>
-        <p>Compre seu número e concorra!</p>
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">ADMIT ONE</div>
+        <div class="brand-text">
+          <div class="brand-line">
+            <span class="brand-title gold3d">Rifas Premium</span>
+            <span class="blue-bolt blink">⚡</span>
+          </div>
+          <div class="brand-sub">Compre seu número e concorra!</div>
+        </div>
+      </div>
+
+      <a class="btn-admin" href="admin.html">Painel ADM</a>
+    </div>
+
+    <!-- LETREIRO INFINITO -->
+    <div class="marquee-wrap">
+      <div class="marquee">
+        <div class="marquee-track">
+          <span class="marquee-item">
+            ✨ RIFAS PREMIUM <span class="blue-bolt blink">⚡</span> • PAGUE NO PIX • RESERVE SEU NÚMERO • BOA SORTE ✨
+          </span>
+          <span class="marquee-item">
+            ✨ RIFAS PREMIUM <span class="blue-bolt blink">⚡</span> • PAGUE NO PIX • RESERVE SEU NÚMERO • BOA SORTE ✨
+          </span>
+          <span class="marquee-item">
+            ✨ RIFAS PREMIUM <span class="blue-bolt blink">⚡</span> • PAGUE NO PIX • RESERVE SEU NÚMERO • BOA SORTE ✨
+          </span>
+        </div>
       </div>
     </div>
-    <a class="adminLink" href="./admin.html">Admin</a>
   </header>
 
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebarHead">
-      <h3>Menu</h3>
-      <button class="closeBtn" id="closeBtn">✕</button>
-    </div>
-
-    <div class="sidebarSection">
-      <h4>Minhas compras</h4>
-      <p class="mini">Digite seu telefone e veja seus números.</p>
-      <input id="lookupPhone" class="input" placeholder="Ex: 11999999999"/>
-      <button id="btnLookup" class="btn">Ver compras</button>
-      <div id="lookupResult" class="box"></div>
-    </div>
-
-    <div class="sidebarSection">
-      <h4>Regras</h4>
-      <ul class="rules">
-        <li>Escolha números disponíveis</li>
-        <li>Finalize o pagamento via Pix</li>
-        <li>Após pagamento, o admin confirma</li>
-      </ul>
-    </div>
-  </aside>
-
+  <!-- CONTEÚDO -->
   <main class="container">
-    <section class="hero">
+    <section class="section-title">
       <h2>🔥 Rifas ativas</h2>
       <p>Escolha uma rifa e reserve seus números</p>
     </section>
 
-    <section id="rifasGrid" class="grid"></section>
+    <section id="rifasArea"></section>
+
+    <section class="footer-note">
+      <p>© <span id="year"></span> Rifas Premium</p>
+    </section>
   </main>
 
-  <footer class="footer">
-    <p>© <span id="year"></span> Rifas Premium</p>
-  </footer>
-
+  <!-- MODAL DE COMPRA -->
   <div class="modal" id="modal">
-    <div class="modalCard">
-      <div class="modalHead">
-        <h3 id="modalTitle">Rifa</h3>
-        <button class="closeBtn" id="modalClose">✕</button>
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeModal()">×</button>
+
+      <h3 class="gold3d">Finalizar reserva</h3>
+      <p id="modalRifaName"></p>
+
+      <div class="modal-grid">
+        <div class="field">
+          <label>Seu nome</label>
+          <input id="buyerName" placeholder="Ex: Maria Silva" />
+        </div>
+        <div class="field">
+          <label>WhatsApp</label>
+          <input id="buyerPhone" placeholder="Ex: 11999999999" />
+        </div>
       </div>
 
-      <div class="modalBody">
-        <img id="modalImg" class="rifaImg" alt="Imagem da rifa"/>
-        <p id="modalDesc" class="desc"></p>
+      <div class="field">
+        <label>Números selecionados</label>
+        <div class="chips" id="selectedChips"></div>
+      </div>
 
-        <div class="buyBox">
-          <label class="label">Seu nome</label>
-          <input id="buyerName" class="input" placeholder="Seu nome completo">
-
-          <label class="label">Seu telefone (WhatsApp)</label>
-          <input id="buyerPhone" class="input" placeholder="DDD + número">
-
-          <label class="label">Escolha os números (separe por vírgula)</label>
-          <input id="buyerNumbers" class="input" placeholder="Ex: 01, 02, 15">
-
-          <button id="btnReserve" class="btn primary">Reservar números</button>
-
-          <div id="payInfo" class="payInfo"></div>
+      <div class="paybox">
+        <div>
+          <div class="pay-title">Pagamento via PIX</div>
+          <div class="pay-sub">Copie a chave e envie o comprovante</div>
         </div>
 
-        <div class="numbersBox">
-          <h4>Números</h4>
-          <div id="numbersGrid" class="numbersGrid"></div>
+        <div class="pix">
+          <input id="pixKey" readonly />
+          <button class="btn" onclick="copyPix()">Copiar PIX</button>
         </div>
+
+        <div class="pay-total" id="totalValue">Total: R$ 0,00</div>
+
+        <button class="btn-primary" onclick="sendWhats()">Enviar comprovante no WhatsApp</button>
       </div>
     </div>
   </div>
 
-  <script src="./app.js"></script>
+  <script>
+    // ===== CONFIG PADRÃO =====
+    const STORAGE_KEY = "rifas_premium_data_v1";
+
+    const defaultData = {
+      pixKey: "b3764325-afe3-40c4-a0fb-a532b88c0717",
+      whatsapp: "5511989448748", // troque se quiser
+      rifas: []
+    };
+
+    // ===== Estado =====
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultData;
+
+    // Se não existe, salva default
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
+      data = defaultData;
+    }
+
+    // ===== Util =====
+    const money = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+    document.getElementById("year").innerText = new Date().getFullYear();
+
+    // ===== Render =====
+    function renderRifas() {
+      const area = document.getElementById("rifasArea");
+      area.innerHTML = "";
+
+      if (!data.rifas.length) {
+        area.innerHTML = `
+          <div class="empty">
+            <h3>Nenhuma rifa criada ainda</h3>
+            <p>O admin precisa criar uma rifa no painel.</p>
+          </div>
+        `;
+        return;
+      }
+
+      data.rifas.forEach((rifa, idx) => {
+        const totalNumbers = rifa.totalNumbers || 100;
+        const price = rifa.price || 10;
+        const reserved = rifa.reserved || []; // [{n, name, phone}]
+
+        const reservedSet = new Set(reserved.map(r => r.n));
+
+        const card = document.createElement("div");
+        card.className = "rifa-card";
+
+        card.innerHTML = `
+          <div class="rifa-head">
+            <div>
+              <h3 class="gold3d">${rifa.title}</h3>
+              <div class="rifa-sub">${rifa.subtitle || "Prêmio incrível!"}</div>
+            </div>
+            <div class="rifa-price">${money(price)}/número</div>
+          </div>
+
+          <div class="numbers" id="numbers_${idx}"></div>
+
+          <div class="rifa-bottom">
+            <div class="rifa-stats">
+              <span>${reserved.length} reservados</span>
+              <span>•</span>
+              <span>${totalNumbers - reserved.length} disponíveis</span>
+            </div>
+            <button class="btn-primary" onclick="openModal(${idx})">Reservar números</button>
+          </div>
+        `;
+
+        area.appendChild(card);
+
+        // números
+        const numbersDiv = card.querySelector(`#numbers_${idx}`);
+        for (let n = 1; n <= totalNumbers; n++) {
+          const btn = document.createElement("button");
+          btn.className = "num";
+          btn.innerText = n.toString().padStart(2, "0");
+
+          if (reservedSet.has(n)) {
+            btn.classList.add("taken");
+            btn.disabled = true;
+          } else {
+            btn.onclick = () => toggleNumber(idx, n, btn);
+          }
+
+          numbersDiv.appendChild(btn);
+        }
+      });
+    }
+
+    // ===== Seleção =====
+    let currentRifaIndex = null;
+    let selectedNumbers = [];
+
+    function toggleNumber(idx, n, btn) {
+      currentRifaIndex = idx;
+
+      if (selectedNumbers.includes(n)) {
+        selectedNumbers = selectedNumbers.filter(x => x !== n);
+        btn.classList.remove("selected");
+      } else {
+        selectedNumbers.push(n);
+        btn.classList.add("selected");
+      }
+    }
+
+    // ===== Modal =====
+    function openModal(idx) {
+      currentRifaIndex = idx;
+      const rifa = data.rifas[idx];
+
+      selectedNumbers = []; // reset
+      document.getElementById("buyerName").value = "";
+      document.getElementById("buyerPhone").value = "";
+
+      // limpar selections nos botões da rifa
+      const nums = document.querySelectorAll(`#numbers_${idx} .num`);
+      nums.forEach(el => el.classList.remove("selected"));
+
+      document.getElementById("modalRifaName").innerText = `Rifa: ${rifa.title}`;
+      document.getElementById("pixKey").value = data.pixKey;
+
+      updateSelectedChips();
+      updateTotal();
+
+      document.getElementById("modal").classList.add("open");
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.remove("open");
+    }
+
+    function updateSelectedChips() {
+      const chips = document.getElementById("selectedChips");
+      chips.innerHTML = "";
+      selectedNumbers.sort((a,b)=>a-b).forEach(n => {
+        const c = document.createElement("span");
+        c.className = "chip";
+        c.innerText = n.toString().padStart(2, "0");
+        chips.appendChild(c);
+      });
+      if (!selectedNumbers.length) {
+        chips.innerHTML = `<span class="muted">Nenhum número selecionado</span>`;
+      }
+    }
+
+    function updateTotal() {
+      const rifa = data.rifas[currentRifaIndex] || { price: 0 };
+      const total = (rifa.price || 0) * selectedNumbers.length;
+      document.getElementById("totalValue").innerText = `Total: ${money(total)}`;
+    }
+
+    function copyPix() {
+      const pix = document.getElementById("pixKey").value;
+      navigator.clipboard.writeText(pix);
+      alert("PIX copiado ✅");
+    }
+
+    // ===== Whats + Reservar =====
+    function sendWhats() {
+      if (currentRifaIndex === null) return;
+
+      const name = document.getElementById("buyerName").value.trim();
+      const phone = document.getElementById("buyerPhone").value.trim();
+
+      if (!name || !phone) {
+        alert("Preencha nome e WhatsApp.");
+        return;
+      }
+
+      if (!selectedNumbers.length) {
+        alert("Selecione ao menos 1 número.");
+        return;
+      }
+
+      const rifa = data.rifas[currentRifaIndex];
+      rifa.reserved = rifa.reserved || [];
+
+      // Reservar números no localStorage
+      selectedNumbers.forEach(n => {
+        rifa.reserved.push({ n, name, phone, date: new Date().toISOString() });
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      const total = (rifa.price || 0) * selectedNumbers.length;
+
+      const msg = encodeURIComponent(
+        `Olá! Quero participar da Rifa: ${rifa.title}\n` +
+        `Nome: ${name}\n` +
+        `WhatsApp: ${phone}\n` +
+        `Números: ${selectedNumbers.sort((a,b)=>a-b).map(x => x.toString().padStart(2,'0')).join(", ")}\n` +
+        `Total: ${money(total)}\n\n` +
+        `Segue o comprovante do PIX ✅`
+      );
+
+      window.open(`https://wa.me/${data.whatsapp}?text=${msg}`, "_blank");
+
+      closeModal();
+      renderRifas();
+    }
+
+    // Atualiza chips/total quando clicar em reservar
+    document.addEventListener("click", () => {
+      if (document.getElementById("modal").classList.contains("open")) {
+        updateSelectedChips();
+        updateTotal();
+      }
+    });
+
+    renderRifas();
+  </script>
 </body>
-</html
+</html>
