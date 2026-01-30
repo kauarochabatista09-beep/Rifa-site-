@@ -187,3 +187,5 @@ a{color:inherit;text-decoration:none}
   width: 210px;
   margin-top: -6px;
 }
+/* garante que o admin escondido não aparece */
+.hidden{ display:none !important; }
